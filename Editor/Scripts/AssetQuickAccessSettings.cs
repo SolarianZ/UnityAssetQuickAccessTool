@@ -7,11 +7,12 @@ namespace GBG.AssetQuickAccess.Editor
 {
     internal class AssetQuickAccessSettings
     {
-        public IReadOnlyList<AssetHandle> AssetHandles => _assetHandles;
+        //public IReadOnlyList<AssetHandle> AssetHandles { get { return _assetHandles; } }
+        public List<AssetHandle> AssetHandles { get { return _assetHandles; } }
 
         private readonly List<AssetHandle> _assetHandles = new List<AssetHandle>();
 
-        private static readonly char _guidSeparator = ';';
+        private static readonly char[] _guidSeparator = new char[] { ';' };
 
         private readonly StringBuilder _stringBuilder = new StringBuilder();
 
@@ -80,7 +81,8 @@ namespace GBG.AssetQuickAccess.Editor
         {
             if (_isStringBuilderDirty)
             {
-                _stringBuilder.Clear();
+                //_stringBuilder.Clear();
+                _stringBuilder.Length = 0;
 
                 for (int i = 0; i < _assetHandles.Count; i++)
                 {

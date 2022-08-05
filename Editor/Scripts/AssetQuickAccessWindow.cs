@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if UNITY_2021_3_OR_NEWER
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -249,3 +250,4 @@ namespace GBG.AssetQuickAccess.Editor
         #endregion
     }
 }
+#endif

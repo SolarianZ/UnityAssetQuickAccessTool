@@ -5,7 +5,7 @@ namespace GBG.AssetQuickAccess.Editor
 {
     internal class AssetHandle
     {
-        public string Guid => _guid;
+        public string Guid { get { return _guid; } }
         private string _guid;
 
         public Object Asset
@@ -14,7 +14,8 @@ namespace GBG.AssetQuickAccess.Editor
             set
             {
                 _asset = value;
-                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(_asset, out _guid, out long _);
+                var assetPath = AssetDatabase.GetAssetPath(_asset);
+                _guid = AssetDatabase.AssetPathToGUID(assetPath);
             }
         }
         private Object _asset;
@@ -30,19 +31,22 @@ namespace GBG.AssetQuickAccess.Editor
         public AssetHandle(Object asset)
         {
             _asset = asset;
-            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(_asset, out _guid, out long _);
+            var assetPath = AssetDatabase.GetAssetPath(_asset);
+            _guid = AssetDatabase.AssetPathToGUID(assetPath);
         }
 
         public override string ToString()
         {
-            return $"{(Asset ? Asset.name : "null")}@{(string.IsNullOrEmpty(Guid) ? "null" : Guid)}";
+            return string.Format("{0}@{1}",
+                Asset ? Asset.name : "null",
+                string.IsNullOrEmpty(Guid) ? "null" : Guid);
         }
 
         public string GetDisplayName()
         {
             if (Asset)
             {
-                return $"{Asset.name} ({Asset.GetType().Name})";
+                return string.Format("{0} ({1})", Asset.name, Asset.GetType().Name);
             }
 
             return "Missing (Unknown)";
