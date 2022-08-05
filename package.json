@@ -1,0 +1,18 @@
+{
+  "name": "com.greenbamboogames.assetquickaccess",
+  "version": "1.0.0",
+  "displayName": "AssetQuickAccess!",
+  "description": "Asset quick access tool.",
+  "unity": "2021.3",
+  "documentationUrl": "",
+  "changelogUrl": "",
+  "licensesUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool/blob/main/LICENSE",
+  "keywords": [],
+  "author": {
+    "name": "GBG",
+    "email": "vdergow@hotmail.com",
+    "url": ""
+  },
+  "type": "tool",
+  "hideInEditor": false
+}
