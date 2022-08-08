@@ -4,8 +4,8 @@
   "displayName": "AssetQuickAccess!",
   "description": "Asset quick access tool.",
   "unity": "2017.4",
-  "documentationUrl": "",
-  "changelogUrl": "",
+  "documentationUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool",
+  "changelogUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases",
   "licensesUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool/blob/main/LICENSE",
   "keywords": [],
   "author": {
