@@ -4,6 +4,10 @@ Unity Asset Quick Access Tool.
 
 Unity 2017.4 and above.
 
+**Installation:**
+
+Install this package via [OpenUPM](https://openupm.com/packages/com.greenbamboogames.assetquickaccess).
+
 **How to use:**
 
 Open Asset Quick Access window from menu "Window/Asset Management/Asset Quick Access Window".
