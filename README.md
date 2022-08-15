@@ -2,6 +2,8 @@
 
 ![Asset Quick Access Window](./Documents/imgs/img_sample_asset_quick_access_window.png)
 
+[中文](./README_CN.md)
+
 ## Supported Unity Version
 
 Unity 2017.4 and later.
