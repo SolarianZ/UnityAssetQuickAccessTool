@@ -1,23 +1,25 @@
-Unity Asset Quick Access Tool.
+# Unity Asset Quick Access Tool.
 
-**Supported Unity Version**:
+![Asset Quick Access Window](./Documents/imgs/img_sample_asset_quick_access_window.png)
 
-Unity 2017.4 and above.
+## Supported Unity Version
 
-**Installation:**
+Unity 2017.4 and later.
+
+## Installation
 
 Install this package via [OpenUPM](https://openupm.com/packages/com.greenbamboogames.assetquickaccess).
 
-**How to use:**
+## How to use
 
-Open Asset Quick Access window from menu "Window/Asset Management/Asset Quick Access Window".
+Open Asset Quick Access window from **menu** "Window/Asset Management/Asset Quick Access Window".
 
-Drag and drop asset to the window to record an asset.
+**Drag and drop** asset to the window to record an asset.
 
-Left click on recorded asset to ping the asset.
+**Left click** on recorded asset to ping the asset.
 
-Left double click on recorded asset to open the asset.
+**Left double click** on recorded asset to open the asset.
 
-Middle Click on recorded asset to remove the asset from list.
+**Middle Click** on recorded asset to remove the asset from list.
 
-Open context menu on the top right of the window and click "Clear all assets" to remove all assets from list.
+Open **context menu** on the top right of the window and click "Clear all assets" to remove all assets from list.
