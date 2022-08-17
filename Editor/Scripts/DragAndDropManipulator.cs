@@ -50,5 +50,4 @@ namespace GBG.AssetQuickAccess.Editor
         }
     }
 }
-
 #endif

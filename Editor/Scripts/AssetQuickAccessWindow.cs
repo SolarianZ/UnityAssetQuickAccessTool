@@ -1,5 +1,4 @@
 ﻿#if UNITY_2021_3_OR_NEWER
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -58,8 +57,8 @@ namespace GBG.AssetQuickAccess.Editor
                 reorderMode = ListViewReorderMode.Animated,
                 makeItem = CreateNewAssetListItem,
                 bindItem = BindAssetListItem,
-                itemsSource = (IList)_settings.AssetHandles,
-                selectionType = SelectionType.None
+                itemsSource = _settings.AssetHandles,
+                selectionType = SelectionType.None,
             };
             _assetListView.itemIndexChanged += OnReorderAsset;
             _rootCanvas.Add(_assetListView);
@@ -120,10 +119,9 @@ namespace GBG.AssetQuickAccess.Editor
                 style =
                 {
                     // content
-                    //alignItems =    new StyleEnum<Align>(Align.FlexStart),
-                    //alignContent =    new StyleEnum<Align>(Align.FlexStart),
                     unityTextAlign = new StyleEnum<TextAnchor>(TextAnchor.MiddleLeft),
                     textOverflow = new StyleEnum<TextOverflow>(TextOverflow.Ellipsis),
+                    height = new Length(100, LengthUnit.Percent),
                     // margin
                     marginLeft = 0,
                     marginRight = 0,
@@ -144,12 +142,6 @@ namespace GBG.AssetQuickAccess.Editor
                     borderTopRightRadius = 0,
                     borderBottomLeftRadius = 0,
                     borderBottomRightRadius = 0,
-                    // position
-                    position = Position.Absolute,
-                    left = 0f,
-                    top = 1f,
-                    right = 2f,
-                    bottom = 1f,
                 }
             };
 
@@ -159,7 +151,7 @@ namespace GBG.AssetQuickAccess.Editor
                 style =
                 {
                     width = new StyleLength(24),
-                    height = new StyleLength(24),
+                    height =new Length(100, LengthUnit.Percent),
                     marginLeft = -28 // to avoid overlap with text
                 }
             };
