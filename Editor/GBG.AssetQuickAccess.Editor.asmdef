@@ -2,7 +2,9 @@
     "name": "GBG.AssetQuickAccess.Editor",
     "rootNamespace": "GBG.AssetQuickAccess.Editor",
     "references": [],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
