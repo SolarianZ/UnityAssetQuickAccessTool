@@ -10,6 +10,8 @@ Unity 2017.4 and later.
 
 ## Installation
 
+[![openupm](https://img.shields.io/npm/v/com.greenbamboogames.assetquickaccess?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.greenbamboogames.assetquickaccess/)
+
 Install this package via [OpenUPM](https://openupm.com/packages/com.greenbamboogames.assetquickaccess).
 
 ## How to use
