@@ -10,6 +10,7 @@ namespace GBG.AssetQuickAccess.Editor
 {
     public class AssetQuickAccessWindow : EditorWindow, IHasCustomMenu
     {
+        [MenuItem("Tools/Bamboo/Asset Quick Access Window")]
         [MenuItem("Window/Asset Management/Asset Quick Access Window")]
         public static void Open()
         {
