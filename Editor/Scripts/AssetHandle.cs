@@ -5,12 +5,20 @@ namespace GBG.AssetQuickAccess.Editor
 {
     internal class AssetHandle
     {
-        public string Guid { get { return _guid; } }
+        public string Guid
+        {
+            get { return _guid; }
+        }
+
         private string _guid;
 
         public Object Asset
         {
-            get { return _asset; ; }
+            get
+            {
+                return _asset;
+                ;
+            }
             set
             {
                 _asset = value;
@@ -18,6 +26,7 @@ namespace GBG.AssetQuickAccess.Editor
                 _guid = AssetDatabase.AssetPathToGUID(assetPath);
             }
         }
+
         private Object _asset;
 
 
@@ -49,7 +58,7 @@ namespace GBG.AssetQuickAccess.Editor
                 return string.Format("{0} ({1})", Asset.name, Asset.GetType().Name);
             }
 
-            return "Missing (Unknown)";
+            return $"Missing (Unknown Asset Guid: {Guid})";
         }
     }
 }

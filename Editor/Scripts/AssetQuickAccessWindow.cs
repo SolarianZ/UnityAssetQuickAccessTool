@@ -1,10 +1,12 @@
 ﻿#if UNITY_2021_3_OR_NEWER
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UIElements;
 using UObject = UnityEngine.Object;
+using UDebug = UnityEngine.Debug;
 
 namespace GBG.AssetQuickAccess.Editor
 {
@@ -20,15 +22,29 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnEnable()
         {
+            // Delete old version key
+            EditorPrefs.DeleteKey("GBG.AssetQuickAccess.SettingsPrefs");
+
             LoadSettings();
 
             CreateView();
             _isViewDirty = true;
         }
 
+        private void OnLostFocus()
+        {
+            if (_isSettingsDirty)
+            {
+                SaveSettings();
+            }
+        }
+
         private void OnDisable()
         {
-            SaveSettings();
+            if (_isSettingsDirty)
+            {
+                SaveSettings();
+            }
         }
 
         private void Update()
@@ -38,6 +54,11 @@ namespace GBG.AssetQuickAccess.Editor
                 _assetListView.RefreshItems();
                 _isViewDirty = false;
             }
+        }
+
+        private void OnProjectChange()
+        {
+            _isViewDirty = true;
         }
 
         private void CreateView()
@@ -82,21 +103,36 @@ namespace GBG.AssetQuickAccess.Editor
 
         #region Settings
 
-        private static readonly string _settingsPrefsKey = "GBG.AssetQuickAccess.SettingsPrefs";
+        private static string _settingsPrefsKey;
 
         private AssetQuickAccessSettings _settings;
 
+        private bool _isSettingsDirty;
 
+
+        private void PrepareSettingsPrefsKey()
+        {
+            if (string.IsNullOrEmpty(_settingsPrefsKey))
+            {
+                _settingsPrefsKey = "GBG.AssetQuickAccess.SettingsPrefs@" +
+                                    Application.companyName + "@" +
+                                    Application.productName;
+            }
+        }
+        
         private void LoadSettings()
         {
+            PrepareSettingsPrefsKey();
             var persistentGuids = EditorPrefs.GetString(_settingsPrefsKey, "");
             _settings = new AssetQuickAccessSettings(persistentGuids);
         }
 
         private void SaveSettings()
         {
+            PrepareSettingsPrefsKey();
             var persistentGuids = _settings.ToString();
             EditorPrefs.SetString(_settingsPrefsKey, persistentGuids);
+            _isSettingsDirty = false;
         }
 
         #endregion
@@ -111,6 +147,8 @@ namespace GBG.AssetQuickAccess.Editor
         private ListView _assetListView;
 
         private static readonly string _assetIconElementName = "asset-quick-access__asset-icon-image";
+
+        private static Texture _warningTexture;
 
 
         private VisualElement CreateNewAssetListItem()
@@ -152,7 +190,7 @@ namespace GBG.AssetQuickAccess.Editor
                 style =
                 {
                     width = new StyleLength(24),
-                    height =new Length(100, LengthUnit.Percent),
+                    height = new Length(100, LengthUnit.Percent),
                     marginLeft = -28 // to avoid overlap with text
                 }
             };
@@ -166,11 +204,22 @@ namespace GBG.AssetQuickAccess.Editor
             var button = (Button)element;
             var assetHandle = _settings.AssetHandles[index];
             button.text = assetHandle.GetDisplayName();
-            button.RegisterCallback<ClickEvent>(e => OnLeftClickAssetListItem(assetHandle, e));
-            button.RegisterCallback<MouseDownEvent>(e => OnRightOrMiddleClickAssetListItem(assetHandle, e));
+            button.RegisterCallback<ClickEvent, AssetHandle>(OnLeftClickAssetListItem, assetHandle);
+            button.RegisterCallback<MouseDownEvent, AssetHandle>(OnRightOrMiddleClickAssetListItem, assetHandle);
 
             var iconImg = button.Q<Image>(_assetIconElementName);
-            iconImg.image = AssetPreview.GetMiniThumbnail(assetHandle.Asset);
+            Texture iconTex = AssetPreview.GetMiniThumbnail(assetHandle.Asset);
+            if (!iconTex)
+            {
+                if (!_warningTexture)
+                {
+                    _warningTexture = EditorGUIUtility.IconContent("Warning@2x").image;
+                }
+
+                iconTex = _warningTexture;
+            }
+
+            iconImg.image = iconTex;
 
             //var elementContainer = button.parent;
             //elementContainer.style.paddingLeft = 0;
@@ -179,7 +228,7 @@ namespace GBG.AssetQuickAccess.Editor
             //elementContainer.style.paddingBottom = 0;
         }
 
-        private void OnLeftClickAssetListItem(AssetHandle handle, ClickEvent e)
+        private void OnLeftClickAssetListItem(ClickEvent e, AssetHandle handle)
         {
             // ClickEvent will only response mouse left click
             Assert.AreEqual(e.button, (int)MouseButton.LeftMouse);
@@ -192,7 +241,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
         }
 
-        private void OnRightOrMiddleClickAssetListItem(AssetHandle handle, MouseDownEvent e)
+        private void OnRightOrMiddleClickAssetListItem(MouseDownEvent e, AssetHandle handle)
         {
             // MouseDownEvent will not response mouse right or middle click
             Assert.AreNotEqual(e.button, (int)MouseButton.LeftMouse);
@@ -203,12 +252,14 @@ namespace GBG.AssetQuickAccess.Editor
 
                 _settings.RemoveAsset(handle);
                 _isViewDirty = true;
+                _isSettingsDirty = true;
             }
         }
 
         private void OnReorderAsset(int fromIndex, int toIndex)
         {
             _settings.MarkDirty();
+            _isSettingsDirty = true;
         }
 
         private void OnDropAssets(IList<UObject> assets)
@@ -219,6 +270,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             _isViewDirty = true;
+            _isSettingsDirty = true;
         }
 
         #endregion
@@ -229,6 +281,7 @@ namespace GBG.AssetQuickAccess.Editor
         void IHasCustomMenu.AddItemsToMenu(GenericMenu menu)
         {
             menu.AddItem(new GUIContent("Clear all assets"), false, ClearAllAssets);
+            menu.AddItem(new GUIContent("Print raw data"), false, PrintRawData);
         }
 
 
@@ -236,8 +289,22 @@ namespace GBG.AssetQuickAccess.Editor
         {
             _settings.ClearAllAssets();
             _isViewDirty = true;
+            _isSettingsDirty = false;
 
+            PrepareSettingsPrefsKey();
             EditorPrefs.DeleteKey(_settingsPrefsKey);
+        }
+
+        private void PrintRawData()
+        {
+            if (_isSettingsDirty)
+            {
+                SaveSettings();
+            }
+
+            PrepareSettingsPrefsKey();
+            var persistentGuids = EditorPrefs.GetString(_settingsPrefsKey, "");
+            UDebug.Log($"{_settingsPrefsKey}\n{persistentGuids}");
         }
 
         #endregion

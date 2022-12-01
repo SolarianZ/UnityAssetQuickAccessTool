@@ -1,11 +1,11 @@
 ﻿#if !UNITY_2021_3_OR_NEWER
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using UObject = UnityEngine.Object;
+using UDebug = UnityEngine.Debug;
 
 namespace GBG.AssetQuickAccess.Editor
 {
@@ -25,14 +25,28 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnEnable()
         {
+            // Delete old version key
+            EditorPrefs.DeleteKey("GBG.AssetQuickAccess.SettingsPrefs");
+
             LoadSettings();
 
             CreateView();
         }
 
+        private void OnLostFocus()
+        {
+            if (_isSettingsDirty)
+            {
+                SaveSettings();
+            }
+        }
+
         private void OnDisable()
         {
-            SaveSettings();
+            if (_isSettingsDirty)
+            {
+                SaveSettings();
+            }
         }
 
         private void OnGUI()
@@ -50,9 +64,10 @@ namespace GBG.AssetQuickAccess.Editor
                     alignment = TextAnchor.MiddleCenter
                 };
             }
+
             GUILayout.Label("Drag and drop asset here to record item.\n" +
                             "Click with middle mouse button to remove item.",
-                            _tooltipsLabelStyle);
+                _tooltipsLabelStyle);
 
             // Allow drag and drop asset to window
             if (mouseOverWindow == this)
@@ -75,7 +90,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void CreateView()
         {
-            _reorderableList = new ReorderableList((IList)_settings.AssetHandles,
+            _reorderableList = new ReorderableList(_settings.AssetHandles,
                 typeof(AssetHandle), true, false, false, false);
             _reorderableList.elementHeightCallback = GetAssetListItemHeight;
             _reorderableList.drawElementCallback = DrawAssetListItem;
@@ -85,21 +100,36 @@ namespace GBG.AssetQuickAccess.Editor
 
         #region Settings
 
-        private static readonly string _settingsPrefsKey = "GBG.AssetQuickAccess.SettingsPrefs";
+        private static string _settingsPrefsKey;
 
         private AssetQuickAccessSettings _settings;
 
+        private bool _isSettingsDirty;
+
+
+        private void PrepareSettingsPrefsKey()
+        {
+            if (string.IsNullOrEmpty(_settingsPrefsKey))
+            {
+                _settingsPrefsKey = "GBG.AssetQuickAccess.SettingsPrefs@" +
+                                    Application.companyName + "@" +
+                                    Application.productName;
+            }
+        }
 
         private void LoadSettings()
         {
+            PrepareSettingsPrefsKey();
             var persistentGuids = EditorPrefs.GetString(_settingsPrefsKey, "");
             _settings = new AssetQuickAccessSettings(persistentGuids);
         }
 
         private void SaveSettings()
         {
+            PrepareSettingsPrefsKey();
             var persistentGuids = _settings.ToString();
             EditorPrefs.SetString(_settingsPrefsKey, persistentGuids);
+            _isSettingsDirty = false;
         }
 
         #endregion
@@ -108,6 +138,8 @@ namespace GBG.AssetQuickAccess.Editor
         #region Asset List View
 
         private ReorderableList _reorderableList;
+
+        private static Texture _warningTexture;
 
         private Vector2 _assetListScrollPos;
 
@@ -136,11 +168,19 @@ namespace GBG.AssetQuickAccess.Editor
                 width = rect.height,
                 height = rect.height
             };
-            var assetIcon = AssetPreview.GetMiniThumbnail(assetHandle.Asset);
-            if (assetIcon)
+            Texture assetIcon = AssetPreview.GetMiniThumbnail(assetHandle.Asset);
+            if (!assetIcon)
             {
-                GUI.DrawTexture(iconRect, assetIcon);
+                if (!_warningTexture)
+                {
+                    _warningTexture = EditorGUIUtility.IconContent("Warning@2x").image;
+                }
+
+                assetIcon = _warningTexture;
             }
+
+            GUI.DrawTexture(iconRect, assetIcon);
+
             // asset button
             var buttonRect = new Rect
             {
@@ -156,6 +196,7 @@ namespace GBG.AssetQuickAccess.Editor
                     alignment = TextAnchor.MiddleLeft
                 };
             }
+
             if (GUI.Button(buttonRect, _settings.AssetHandles[index].GetDisplayName(),
                     _assetItemButtonStyle))
             {
@@ -163,9 +204,9 @@ namespace GBG.AssetQuickAccess.Editor
                 {
                     OnLeftClickAssetListItem(_settings.AssetHandles[index]);
                 }
-                else
+                else if (Event.current.button == 2)
                 {
-                    OnRightOrMiddleClickAssetListItem(_settings.AssetHandles[index]);
+                    OnMiddleClickAssetListItem(_settings.AssetHandles[index]);
                 }
             }
 
@@ -192,11 +233,12 @@ namespace GBG.AssetQuickAccess.Editor
             _lastClickedAsset = handle.Asset;
         }
 
-        private void OnRightOrMiddleClickAssetListItem(AssetHandle handle)
+        private void OnMiddleClickAssetListItem(AssetHandle handle)
         {
             EditorGUIUtility.PingObject(handle.Asset);
 
             _settings.RemoveAsset(handle);
+            _isSettingsDirty = true;
         }
 
         private void OnDropAssets(IList<UObject> assets)
@@ -205,6 +247,8 @@ namespace GBG.AssetQuickAccess.Editor
             {
                 _settings.AddAsset(assets[i]);
             }
+
+            _isSettingsDirty = true;
         }
 
         #endregion
@@ -215,14 +259,29 @@ namespace GBG.AssetQuickAccess.Editor
         void IHasCustomMenu.AddItemsToMenu(GenericMenu menu)
         {
             menu.AddItem(new GUIContent("Clear all assets"), false, ClearAllAssets);
+            menu.AddItem(new GUIContent("Print raw data"), false, PrintRawData);
         }
 
 
         private void ClearAllAssets()
         {
             _settings.ClearAllAssets();
+            _isSettingsDirty = false;
 
+            PrepareSettingsPrefsKey();
             EditorPrefs.DeleteKey(_settingsPrefsKey);
+        }
+
+        private void PrintRawData()
+        {
+            if (_isSettingsDirty)
+            {
+                SaveSettings();
+            }
+
+            PrepareSettingsPrefsKey();
+            var persistentGuids = EditorPrefs.GetString(_settingsPrefsKey, "");
+            UDebug.Log($"{_settingsPrefsKey}\n{persistentGuids}");
         }
 
         #endregion
