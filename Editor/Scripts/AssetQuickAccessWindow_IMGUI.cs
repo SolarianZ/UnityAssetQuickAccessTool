@@ -173,7 +173,7 @@ namespace GBG.AssetQuickAccess.Editor
             {
                 if (!_warningTexture)
                 {
-                    _warningTexture = EditorGUIUtility.IconContent("Warning@2x").image;
+                    _warningTexture = EditorGUIUtility.IconContent("d_console.warnicon").image;
                 }
 
                 assetIcon = _warningTexture;
@@ -216,6 +216,7 @@ namespace GBG.AssetQuickAccess.Editor
         private void OnReorderAssetList(ReorderableList list)
         {
             _settings.MarkDirty();
+            _isSettingsDirty = true;
         }
 
         private void OnLeftClickAssetListItem(AssetHandle handle)
@@ -281,7 +282,8 @@ namespace GBG.AssetQuickAccess.Editor
 
             PrepareSettingsPrefsKey();
             var persistentGuids = EditorPrefs.GetString(_settingsPrefsKey, "");
-            UDebug.Log($"{_settingsPrefsKey}\n{persistentGuids}");
+            var rawData = string.Format("{0}\n{1}", _settingsPrefsKey, persistentGuids);
+            UDebug.Log(rawData);
         }
 
         #endregion

@@ -58,7 +58,7 @@ namespace GBG.AssetQuickAccess.Editor
                 return string.Format("{0} ({1})", Asset.name, Asset.GetType().Name);
             }
 
-            return $"Missing (Unknown Asset Guid: {Guid})";
+            return string.Format("Missing (Unknown Asset Guid: {0})", Guid);
         }
     }
 }
