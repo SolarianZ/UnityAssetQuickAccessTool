@@ -54,6 +54,7 @@ namespace GBG.AssetQuickAccess.Editor
             // Asset list scroll view
             _assetListScrollPos = EditorGUILayout.BeginScrollView(_assetListScrollPos);
             _reorderableList.DoLayoutList();
+            TryRemoveAsset();
             EditorGUILayout.EndScrollView();
 
             // Tool tips
@@ -65,8 +66,8 @@ namespace GBG.AssetQuickAccess.Editor
                 };
             }
 
-            GUILayout.Label("Drag and drop asset here to record item.\n" +
-                            "Click with middle mouse button to remove item.",
+            GUILayout.Label("Drag and drop the asset here to add a new item.\n" +
+                            "Click with the middle mouse button to remove the item.",
                 _tooltipsLabelStyle);
 
             // Allow drag and drop asset to window
@@ -148,6 +149,8 @@ namespace GBG.AssetQuickAccess.Editor
         private DateTime _lastClickAssetTime;
 
         private UObject _lastClickedAsset;
+
+        private AssetHandle _assetToRemove;
 
 
         private float GetAssetListItemHeight(int index)
@@ -236,10 +239,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnMiddleClickAssetListItem(AssetHandle handle)
         {
-            EditorGUIUtility.PingObject(handle.Asset);
-
-            _settings.RemoveAsset(handle);
-            _isSettingsDirty = true;
+            _assetToRemove = handle;
         }
 
         private void OnDropAssets(IList<UObject> assets)
@@ -250,6 +250,20 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             _isSettingsDirty = true;
+        }
+
+        private void TryRemoveAsset()
+        {
+            if (_assetToRemove == null)
+            {
+                return;
+            }
+
+            EditorGUIUtility.PingObject(_assetToRemove.Asset);
+
+            _settings.RemoveAsset(_assetToRemove);
+            _isSettingsDirty = true;
+            _assetToRemove = null;
         }
 
         #endregion

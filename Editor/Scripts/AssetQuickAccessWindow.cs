@@ -88,8 +88,8 @@ namespace GBG.AssetQuickAccess.Editor
             // Tool tips
             var tipsText = new Label
             {
-                text = "Drag and drop asset here to record item.\n" +
-                       "Click with middle mouse button to remove item.",
+                text = "Drag and drop the asset here to add a new item.\n" +
+                       "Click with the middle mouse button to remove the item.",
                 style =
                 {
                     unityTextAlign = new StyleEnum<TextAnchor>(TextAnchor.MiddleCenter),
