@@ -95,6 +95,8 @@ namespace GBG.AssetQuickAccess.Editor
                 style =
                 {
                     flexGrow = 1,
+                    marginTop = 2,
+                    minHeight = 40,
                 }
             };
             _assetListView.itemIndexChanged += OnReorderAsset;
