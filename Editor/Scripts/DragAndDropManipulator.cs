@@ -1,5 +1,4 @@
-﻿#if UNITY_2021_3_OR_NEWER
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.UIElements;
@@ -50,4 +49,3 @@ namespace GBG.AssetQuickAccess.Editor
         }
     }
 }
-#endif

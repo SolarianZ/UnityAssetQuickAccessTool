@@ -1,99 +1,163 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
+using UnityEditor;
+using UnityEditorInternal;
+using UnityEngine;
+using UnityEngine.Assertions;
 using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
-    internal class AssetQuickAccessSettings
+    internal class AssetQuickAccessSettings : ScriptableObject
     {
-        //public IReadOnlyList<AssetHandle> AssetHandles { get { return _assetHandles; } }
-        public List<AssetHandle> AssetHandles { get { return _assetHandles; } }
+        private const string _FOLDER = "UserSettings";
+        private const string _PATH = _FOLDER + "/" + nameof(AssetQuickAccessSettings) + ".asset";
 
-        private readonly List<AssetHandle> _assetHandles = new List<AssetHandle>();
-
-        private static readonly char[] _guidSeparator = new char[] { ';' };
-
-        private readonly StringBuilder _stringBuilder = new StringBuilder();
-
-        private bool _isStringBuilderDirty = true;
+        private static AssetQuickAccessSettings _instance;
+        private static readonly List<AssetHandle> _assetHandles = new List<AssetHandle>();
 
 
-        public AssetQuickAccessSettings(string persistentGuids)
+        public static List<AssetHandle> GetAssetHandles()
         {
-            if (string.IsNullOrEmpty(persistentGuids))
+            LoadOrCreate();
+            return _assetHandles;
+        }
+
+        public static AssetHandle GetAssetHandle(int index)
+        {
+            return GetAssetHandles()[index];
+        }
+
+        public static void Refresh()
+        {
+            if (_instance)
             {
+                PopulateAssetHandles();
                 return;
             }
 
-            var guids = persistentGuids.Split(_guidSeparator, StringSplitOptions.RemoveEmptyEntries);
-            for (int i = 0; i < guids.Length; i++)
-            {
-                var guid = guids[i];
-                var assetHandle = new AssetHandle(guid);
-                _assetHandles.Add(assetHandle);
-            }
+            LoadOrCreate();
         }
 
-        public void MarkDirty()
+        public static bool AddAsset(UObject asset)
         {
-            _isStringBuilderDirty = true;
-        }
+            LoadOrCreate();
 
-        public void AddAsset(UObject asset)
-        {
-            var assetHandle = _assetHandles.Find(handle => handle.Asset && handle.Asset == asset);
-            if (assetHandle != null)
+            var assetPath = AssetDatabase.GetAssetPath(asset);
+            var assetGuid = AssetDatabase.AssetPathToGUID(assetPath, AssetPathToGUIDOptions.OnlyExistingAssets);
+            if (_instance._guids.Contains(assetGuid))
             {
-                return;
+                Assert.IsTrue(_assetHandles.Any(h => h.Guid == assetGuid));
+                Debug.Log($"Asset '{asset}' has already been recorded.", asset);
+                return false;
             }
 
-            assetHandle = new AssetHandle(asset);
-            _assetHandles.Add(assetHandle);
+            _instance._guids.Add(assetGuid);
+            Assert.IsFalse(_assetHandles.Any(h => h.Guid == assetGuid));
+            _assetHandles.Add(new AssetHandle(asset));
+            ForceSave();
 
-            MarkDirty();
+            return true;
         }
 
-        public bool RemoveAsset(AssetHandle handle)
+        public static bool RemoveAsset(AssetHandle handle)
         {
-            if (_assetHandles.Remove(handle))
+            LoadOrCreate();
+
+            if (!_assetHandles.Remove(handle))
             {
-                MarkDirty();
-                return true;
+                Assert.IsFalse(_instance._guids.Contains(handle.Guid));
+                Debug.LogError($"Asset handle '{handle}' does not exist.", handle.Asset);
+                return false;
             }
 
-            return false;
+            var removed = _instance._guids.Remove(handle.Guid);
+            Assert.IsTrue(removed);
+            ForceSave();
+            return true;
         }
 
-        public void ClearAllAssets()
+        public static void ClearAllAssets()
         {
-            if (_assetHandles.Count == 0)
+            LoadOrCreate();
+
+            Assert.IsTrue(_instance._guids.Count == _assetHandles.Count);
+            if (_instance._guids.Count > 0)
             {
-                return;
+                _instance._guids.Clear();
+                _assetHandles.Clear();
+                ForceSave();
             }
 
+            Debug.Log("All asset quick access items cleared.");
+        }
+
+        public static void PrintGuids()
+        {
+            LoadOrCreate();
+
+            var sb = new StringBuilder();
+            foreach (var guid in _instance._guids)
+            {
+                sb.AppendLine(guid);
+            }
+
+            Debug.Log(sb.ToString(), _instance);
+        }
+
+        public static void ForceSave()
+        {
+            EditorUtility.SetDirty(_instance);
+            InternalEditorUtility.SaveToSerializedFileAndForget(new UObject[] { _instance }, _PATH, true);
+        }
+
+
+        private static void PopulateAssetHandles()
+        {
             _assetHandles.Clear();
-
-            MarkDirty();
+            foreach (var guid in _instance._guids)
+            {
+                _assetHandles.Add(new AssetHandle(guid));
+            }
         }
 
-        public override string ToString()
+        private static void LoadOrCreate()
         {
-            if (_isStringBuilderDirty)
+            if (_instance)
             {
-                //_stringBuilder.Clear();
-                _stringBuilder.Length = 0;
-
-                for (int i = 0; i < _assetHandles.Count; i++)
-                {
-                    var assetHandle = _assetHandles[i];
-                    _stringBuilder.Append(assetHandle.Guid).Append(_guidSeparator);
-                }
-
-                _isStringBuilderDirty = false;
+                return;
             }
 
-            return _stringBuilder.ToString();
+            // Load
+            var objects = InternalEditorUtility.LoadSerializedFileAndForget(_PATH);
+            if (objects.Length > 0)
+            {
+                _instance = (AssetQuickAccessSettings)objects[0];
+                PopulateAssetHandles();
+                return;
+            }
+
+            // Create
+            if (!Directory.Exists(_FOLDER))
+            {
+                Directory.CreateDirectory(_FOLDER);
+            }
+
+            _instance = CreateInstance<AssetQuickAccessSettings>();
+            PopulateAssetHandles();
+            InternalEditorUtility.SaveToSerializedFileAndForget(new UObject[] { _instance }, _PATH, true);
+            Debug.Log($"Create new {nameof(AssetQuickAccessSettings)} file at path {_PATH}.");
         }
+
+
+#pragma warning disable CS0414
+        [SerializeField]
+        private int _version = 3;
+#pragma warning restore CS0414
+
+        [SerializeField]
+        private List<string> _guids = new List<string>();
     }
 }

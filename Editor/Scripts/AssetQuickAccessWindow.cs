@@ -1,5 +1,4 @@
-﻿#if UNITY_2021_3_OR_NEWER
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -23,27 +22,16 @@ namespace GBG.AssetQuickAccess.Editor
         private void OnEnable()
         {
             ConvertOldData();
-
-            LoadSettings();
-
             CreateView();
             _isViewDirty = true;
-        }
 
-        private void OnLostFocus()
-        {
-            if (_isSettingsDirty)
-            {
-                SaveSettings();
-            }
+            AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
+            AssemblyReloadEvents.afterAssemblyReload += RefreshData;
         }
 
         private void OnDisable()
         {
-            if (_isSettingsDirty)
-            {
-                SaveSettings();
-            }
+            AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
         }
 
         private void Update()
@@ -58,6 +46,29 @@ namespace GBG.AssetQuickAccess.Editor
         private void OnProjectChange()
         {
             _isViewDirty = true;
+        }
+
+        private void ConvertOldData()
+        {
+            // Delete version 1 data(Conversion not supported)
+            EditorPrefs.DeleteKey("GBG.AssetQuickAccess.SettingsPrefs");
+
+            // Convert Version 2 data to Version 3
+            var prefsKey = "GBG.AssetQuickAccess.SettingsPrefs@" +
+                           Application.companyName + "@" + Application.productName;
+            if (EditorPrefs.HasKey(prefsKey))
+            {
+                var guidPrefs = EditorPrefs.GetString(prefsKey, "");
+                var guids = guidPrefs.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 0; i < guids.Length; i++)
+                {
+                    var guid = guids[i];
+                    var asset = AssetDatabase.LoadAssetAtPath<UObject>(AssetDatabase.GUIDToAssetPath(guid));
+                    AssetQuickAccessSettings.AddAsset(asset);
+                }
+
+                EditorPrefs.DeleteKey(prefsKey);
+            }
         }
 
         private void CreateView()
@@ -79,7 +90,7 @@ namespace GBG.AssetQuickAccess.Editor
                 makeItem = CreateNewAssetListItem,
                 bindItem = BindAssetListItem,
                 unbindItem = UnbindAssetListItem,
-                itemsSource = _settings.AssetHandles,
+                itemsSource = AssetQuickAccessSettings.GetAssetHandles(),
                 selectionType = SelectionType.None,
                 style =
                 {
@@ -157,56 +168,10 @@ namespace GBG.AssetQuickAccess.Editor
             findAssetContainer.Add(findAssetButton);
         }
 
-
-        #region Settings
-
-        private static string _settingsPrefsKey;
-
-        private AssetQuickAccessSettings _settings;
-
-        private bool _isSettingsDirty;
-
-
-        private void PrepareSettingsPrefsKey()
+        private void RefreshData()
         {
-            if (string.IsNullOrEmpty(_settingsPrefsKey))
-            {
-                _settingsPrefsKey = "GBG.AssetQuickAccess.SettingsPrefs@" +
-                                    Application.companyName + "@" +
-                                    Application.productName;
-            }
+            Debug.Log("TODO : FIX #1");
         }
-
-        private void LoadSettings()
-        {
-            PrepareSettingsPrefsKey();
-            var persistentGuids = EditorPrefs.GetString(_settingsPrefsKey, "");
-            _settings = new AssetQuickAccessSettings(persistentGuids);
-        }
-
-        private void SaveSettings()
-        {
-            PrepareSettingsPrefsKey();
-            var persistentGuids = _settings.ToString();
-            EditorPrefs.SetString(_settingsPrefsKey, persistentGuids);
-            _isSettingsDirty = false;
-        }
-
-        #endregion
-
-
-        #region Compatibility
-
-        private void ConvertOldData()
-        {
-            // Delete version 1 data(Conversion not supported)
-            EditorPrefs.DeleteKey("GBG.AssetQuickAccess.SettingsPrefs");
-
-            // TODO: Convert Version 2 data
-
-        }
-
-        #endregion
 
 
         #region Asset List View
@@ -273,7 +238,7 @@ namespace GBG.AssetQuickAccess.Editor
         private void BindAssetListItem(VisualElement element, int index)
         {
             var button = (Button)element;
-            var assetHandle = _settings.AssetHandles[index];
+            var assetHandle = AssetQuickAccessSettings.GetAssetHandle(index);
             button.text = assetHandle.GetDisplayName();
             button.RegisterCallback<ClickEvent, AssetHandle>(OnClickAssetListItem, assetHandle);
             button.RegisterCallback<ContextClickEvent, AssetHandle>(OnContextClickAssetListItem, assetHandle);
@@ -291,19 +256,12 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             iconImg.image = iconTex;
-
-            //var elementContainer = button.parent;
-            //elementContainer.style.paddingLeft = 0;
-            //elementContainer.style.paddingRight = 0;
-            //elementContainer.style.paddingTop = 0;
-            //elementContainer.style.paddingBottom = 0;
         }
 
         private void UnbindAssetListItem(VisualElement element, int index)
         {
-            var button = (Button)element;
-            button.UnregisterCallback<ClickEvent, AssetHandle>(OnClickAssetListItem);
-            button.UnregisterCallback<ContextClickEvent, AssetHandle>(OnContextClickAssetListItem);
+            element.UnregisterCallback<ClickEvent, AssetHandle>(OnClickAssetListItem);
+            element.UnregisterCallback<ContextClickEvent, AssetHandle>(OnContextClickAssetListItem);
         }
 
         private void OnClickAssetListItem(ClickEvent e, AssetHandle handle)
@@ -326,30 +284,21 @@ namespace GBG.AssetQuickAccess.Editor
             menu.AddItem("Print Guid", false, () => UDebug.Log(handle.Guid, handle.Asset));
             menu.AddItem("Print Path", false, () => UDebug.Log(AssetDatabase.GUIDToAssetPath(handle.Guid), handle.Asset));
             menu.AddItem("Show in Folder", false, () => EditorUtility.RevealInFinder(AssetDatabase.GUIDToAssetPath(handle.Guid)));
-            menu.AddItem("Remove", false, () =>
-            {
-                _settings.RemoveAsset(handle);
-                _isViewDirty = true;
-                _isSettingsDirty = true;
-            });
+            menu.AddItem("Remove", false, () => _isViewDirty |= AssetQuickAccessSettings.RemoveAsset(handle));
             menu.DropDown(new Rect(e.mousePosition, Vector2.zero), e.currentTarget as VisualElement);
         }
 
         private void OnReorderAsset(int fromIndex, int toIndex)
         {
-            _settings.MarkDirty();
-            _isSettingsDirty = true;
+            AssetQuickAccessSettings.ForceSave();
         }
 
         private void OnDropAssets(IList<UObject> assets)
         {
             for (int i = 0; i < assets.Count; i++)
             {
-                _settings.AddAsset(assets[i]);
+                _isViewDirty |= AssetQuickAccessSettings.AddAsset(assets[i]);
             }
-
-            _isViewDirty = true;
-            _isSettingsDirty = true;
         }
 
         #endregion
@@ -359,34 +308,10 @@ namespace GBG.AssetQuickAccess.Editor
 
         void IHasCustomMenu.AddItemsToMenu(GenericMenu menu)
         {
-            menu.AddItem(new GUIContent("Clear all assets"), false, ClearAllAssets);
-            menu.AddItem(new GUIContent("Print raw data"), false, PrintRawData);
-        }
-
-
-        private void ClearAllAssets()
-        {
-            _settings.ClearAllAssets();
-            _isViewDirty = true;
-            _isSettingsDirty = false;
-
-            PrepareSettingsPrefsKey();
-            EditorPrefs.DeleteKey(_settingsPrefsKey);
-        }
-
-        private void PrintRawData()
-        {
-            if (_isSettingsDirty)
-            {
-                SaveSettings();
-            }
-
-            PrepareSettingsPrefsKey();
-            var persistentGuids = EditorPrefs.GetString(_settingsPrefsKey, "");
-            UDebug.Log($"{_settingsPrefsKey}\n{persistentGuids}");
+            menu.AddItem(new GUIContent("Clear all assets"), false, AssetQuickAccessSettings.ClearAllAssets);
+            menu.AddItem(new GUIContent("Print guids"), false, AssetQuickAccessSettings.PrintGuids);
         }
 
         #endregion
     }
 }
-#endif

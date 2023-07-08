@@ -46,19 +46,19 @@ namespace GBG.AssetQuickAccess.Editor
 
         public override string ToString()
         {
-            return string.Format("{0}@{1}",
-                Asset ? Asset.name : "null",
-                string.IsNullOrEmpty(Guid) ? "null" : Guid);
+            var guidStr = string.IsNullOrEmpty(Guid) ? "null" : Guid;
+            var assetStr = Asset ? Asset.name : "null";
+            return $"Guid:{guidStr}, Asset:{assetStr}";
         }
 
         public string GetDisplayName()
         {
             if (Asset)
             {
-                return string.Format("{0} ({1})", Asset.name, Asset.GetType().Name);
+                return $"{Asset.name}    <i>({Asset.GetType().Name})</i>";
             }
 
-            return string.Format("Missing (Unknown Asset Guid: {0})", Guid);
+            return $"Missing <i>(Unknown Asset Guid: {Guid})</i>";
         }
     }
 }
