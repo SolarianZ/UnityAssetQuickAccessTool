@@ -287,6 +287,7 @@ namespace GBG.AssetQuickAccess.Editor
             e.StopPropagation();
 
             var menu = new GenericDropdownMenu();
+            menu.AddItem("Open", false, () => AssetDatabase.OpenAsset(handle.Asset));
             menu.AddItem("Ping", false, () => EditorGUIUtility.PingObject(handle.Asset));
             menu.AddItem("Print Guid", false, () => UDebug.Log(handle.Guid, handle.Asset));
             menu.AddItem("Print Path", false, () => UDebug.Log(AssetDatabase.GUIDToAssetPath(handle.Guid), handle.Asset));
