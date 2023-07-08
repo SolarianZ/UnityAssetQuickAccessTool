@@ -63,8 +63,8 @@ namespace GBG.AssetQuickAccess.Editor
                 for (int i = 0; i < guids.Length; i++)
                 {
                     var guid = guids[i];
-                    var asset = AssetDatabase.LoadAssetAtPath<UObject>(AssetDatabase.GUIDToAssetPath(guid));
-                    AssetQuickAccessSettings.AddAsset(asset);
+                    var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                    AssetQuickAccessSettings.AddAsset(assetPath);
                 }
 
                 EditorPrefs.DeleteKey(prefsKey);
@@ -80,7 +80,7 @@ namespace GBG.AssetQuickAccess.Editor
             _rootCanvas.StretchToParentSize();
             rootVisualElement.Add(_rootCanvas);
             var dragDropManipulator = new DragAndDropManipulator(_rootCanvas);
-            dragDropManipulator.OnDropAssets += OnDropAssets;
+            dragDropManipulator.OnDragAndDropAssets += OnDragAndDropAssets;
 
             // Asset list view
             _assetListView = new ListView
@@ -170,7 +170,12 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void RefreshData()
         {
-            Debug.Log("TODO : FIX #1");
+            // Fix #1
+            EditorApplication.delayCall += () =>
+            {
+                AssetQuickAccessSettings.Refresh();
+                _isViewDirty = true;
+            };
         }
 
 
@@ -293,11 +298,11 @@ namespace GBG.AssetQuickAccess.Editor
             AssetQuickAccessSettings.ForceSave();
         }
 
-        private void OnDropAssets(IList<UObject> assets)
+        private void OnDragAndDropAssets(IList<string> assetPaths)
         {
-            for (int i = 0; i < assets.Count; i++)
+            for (int i = 0; i < assetPaths.Count; i++)
             {
-                _isViewDirty |= AssetQuickAccessSettings.AddAsset(assets[i]);
+                _isViewDirty |= AssetQuickAccessSettings.AddAsset(assetPaths[i]);
             }
         }
 

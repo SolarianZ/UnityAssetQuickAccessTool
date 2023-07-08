@@ -41,22 +41,28 @@ namespace GBG.AssetQuickAccess.Editor
             LoadOrCreate();
         }
 
-        public static bool AddAsset(UObject asset)
+        public static bool AddAsset(string assetPath)
         {
             LoadOrCreate();
 
-            var assetPath = AssetDatabase.GetAssetPath(asset);
             var assetGuid = AssetDatabase.AssetPathToGUID(assetPath, AssetPathToGUIDOptions.OnlyExistingAssets);
+            if (string.IsNullOrEmpty(assetGuid))
+            {
+                Debug.LogError($"Can not load asset at path '{assetPath}'.");
+                return false;
+            }
+
             if (_instance._guids.Contains(assetGuid))
             {
                 Assert.IsTrue(_assetHandles.Any(h => h.Guid == assetGuid));
+                var asset = AssetDatabase.LoadAssetAtPath<UObject>(assetPath);
                 Debug.Log($"Asset '{asset}' has already been recorded.", asset);
                 return false;
             }
 
             _instance._guids.Add(assetGuid);
             Assert.IsFalse(_assetHandles.Any(h => h.Guid == assetGuid));
-            _assetHandles.Add(new AssetHandle(asset));
+            _assetHandles.Add(new AssetHandle(assetGuid));
             ForceSave();
 
             return true;
