@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "displayName": "Asset Quick Access!",
   "description": "Asset quick access tool.",
-  "unity": "2017.4",
+  "unity": "2021.3",
   "documentationUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool",
   "changelogUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases",
   "licensesUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool/blob/main/LICENSE",
