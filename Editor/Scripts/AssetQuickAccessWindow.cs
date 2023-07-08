@@ -1,4 +1,5 @@
 ﻿#if UNITY_2021_3_OR_NEWER
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -101,19 +102,20 @@ namespace GBG.AssetQuickAccess.Editor
             };
             _rootCanvas.Add(tipsText);
 
-            // Find asset by guid
+            // Find asset by guid/path
             var findAssetContainer = new VisualElement
             {
                 style =
                 {
                     flexDirection = FlexDirection.Row,
                     height = 32,
+                    minHeight = 32,
                     paddingTop = 3,
                     paddingBottom = 3,
                 },
             };
             _rootCanvas.Add(findAssetContainer);
-            var assetGuidField = new TextField("Find Guid")
+            var assetUrlField = new TextField("Find Asset")
             {
                 style =
                 {
@@ -123,26 +125,30 @@ namespace GBG.AssetQuickAccess.Editor
                 {
                     style =
                     {
-                        width = 60,
-                        minWidth = 60,
+                        width = 68,
+                        minWidth = 68,
                         unityTextAlign = TextAnchor.MiddleCenter,
                     }
                 }
             };
-            findAssetContainer.Add(assetGuidField);
+            findAssetContainer.Add(assetUrlField);
             var findAssetButton = new Button(() =>
                 {
-                    var guid = assetGuidField.value;
-                    var filePath = AssetDatabase.GUIDToAssetPath(guid);
+                    var url = assetUrlField.value;
+                    var filePath = string.Empty;
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        if (url.StartsWith("Assets", StringComparison.OrdinalIgnoreCase)) filePath = url;
+                        else filePath = AssetDatabase.GUIDToAssetPath(url);
+                    }
                     var asset = AssetDatabase.LoadAssetAtPath<UObject>(filePath);
                     if (asset)
                     {
                         EditorGUIUtility.PingObject(asset);
-                        UDebug.Log(filePath, asset);
                     }
                     else
                     {
-                        ShowNotification(new GUIContent($"Can not find asset with guid '{guid}'."));
+                        ShowNotification(new GUIContent($"Can not find asset with guid or path '{url}'."));
                     }
                 })
             {
