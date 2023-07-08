@@ -315,12 +315,12 @@ namespace GBG.AssetQuickAccess.Editor
 
         void IHasCustomMenu.AddItemsToMenu(GenericMenu menu)
         {
-            menu.AddItem(new GUIContent("Clear all assets"), false, () =>
+            menu.AddItem(new GUIContent("Clear All Items"), false, () =>
             {
                 AssetQuickAccessSettings.ClearAllAssets();
                 _isViewDirty = true;
             });
-            menu.AddItem(new GUIContent("Print guids"), false, AssetQuickAccessSettings.PrintGuids);
+            menu.AddItem(new GUIContent("Print Guids"), false, AssetQuickAccessSettings.PrintGuids);
         }
 
         #endregion

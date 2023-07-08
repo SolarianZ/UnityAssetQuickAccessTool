@@ -1,12 +1,24 @@
 # Unity资产快速访问工具
 
-![Asset Quick Access Window](./Documents/imgs/img_sample_asset_quick_access_window.png)
+![Asset Quick Access Window](./Documents~/imgs/img_sample_asset_quick_access_window.png)
 
 [English](./README.md)
 
+## 功能
+
+- 记录常用资产
+- 快速打开常用资产
+- 快速定位常用资产
+- 打印资产Guid
+- 打印资产路径
+- 在文件夹中显示资产
+- 根据Guid或路径查找资产
+
 ## 支持的Unity版本
 
-Unity 2017.4 或更新版本。
+Unity 2021.3 或更新版本。
+
+Unity 2021.2及更低版本的Unity请使用 [1.2.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.2.1) 版本。
 
 ## 安装
 
@@ -16,14 +28,11 @@ Unity 2017.4 或更新版本。
 
 ## 如何使用
 
-从 **菜单** “Window/Asset Management/Asset Quick Access Window” 打开资产快速访问工具窗口。
+从菜单 “Tools/Bamboo/Asset Quick Access Window” 打开资产快速访问工具窗口。
 
-将资产 **拖放** 到窗口中来记录资产。
-
-使用 **鼠标左键单击** 资产，可以在Project窗口中定位（Ping）此资产。
-
-使用 **鼠标左键双击** 资产，可以打开此资产。
-
-使用 **鼠标中键点击** 资产，可以从窗口中移除此资产。
-
-使用窗口右上角的 **菜单** 中的 “Clear all assets” 选项可以清除窗口中记录的所有资产。
+- 将资产 **拖放** 到窗口中来记录资产。
+- 使用 **鼠标左键单击** 已记录的资产，可以在Project窗口中定位（Ping）此资产。
+- 使用 **鼠标左键双击** 已记录的资产，可以打开此资产。
+- 使用 **鼠标右键单击** 已记录的资产，可以显示资产操作菜单。
+- 在 **Find Asset** 输入框中输入资产的Guid或路径查找资产
+- 使用窗口上下文菜单中的 “Clear All Items” 选项可以清除窗口中记录的所有资产。
