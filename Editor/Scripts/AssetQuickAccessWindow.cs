@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.UIElements;
 using UDebug = UnityEngine.Debug;
 using UObject = UnityEngine.Object;
@@ -22,8 +21,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnEnable()
         {
-            // Delete old version key
-            EditorPrefs.DeleteKey("GBG.AssetQuickAccess.SettingsPrefs");
+            ConvertOldData();
 
             LoadSettings();
 
@@ -79,6 +77,7 @@ namespace GBG.AssetQuickAccess.Editor
                 reorderMode = ListViewReorderMode.Animated,
                 makeItem = CreateNewAssetListItem,
                 bindItem = BindAssetListItem,
+                unbindItem = UnbindAssetListItem,
                 itemsSource = _settings.AssetHandles,
                 selectionType = SelectionType.None,
                 style =
@@ -92,8 +91,7 @@ namespace GBG.AssetQuickAccess.Editor
             // Tool tips
             var tipsText = new Label
             {
-                text = "Drag and drop the asset here to add a new item.\n" +
-                       "Click with the middle mouse button to remove the item.",
+                text = "Drag and drop the asset here to add a new item.",
                 style =
                 {
                     unityTextAlign = new StyleEnum<TextAnchor>(TextAnchor.MiddleCenter),
@@ -191,6 +189,20 @@ namespace GBG.AssetQuickAccess.Editor
         #endregion
 
 
+        #region Compatibility
+
+        private void ConvertOldData()
+        {
+            // Delete version 1 data(Conversion not supported)
+            EditorPrefs.DeleteKey("GBG.AssetQuickAccess.SettingsPrefs");
+
+            // TODO: Convert Version 2 data
+
+        }
+
+        #endregion
+
+
         #region Asset List View
 
         private VisualElement _rootCanvas;
@@ -257,8 +269,8 @@ namespace GBG.AssetQuickAccess.Editor
             var button = (Button)element;
             var assetHandle = _settings.AssetHandles[index];
             button.text = assetHandle.GetDisplayName();
-            button.RegisterCallback<ClickEvent, AssetHandle>(OnLeftClickAssetListItem, assetHandle);
-            button.RegisterCallback<MouseDownEvent, AssetHandle>(OnRightOrMiddleClickAssetListItem, assetHandle);
+            button.RegisterCallback<ClickEvent, AssetHandle>(OnClickAssetListItem, assetHandle);
+            button.RegisterCallback<ContextClickEvent, AssetHandle>(OnContextClickAssetListItem, assetHandle);
 
             var iconImg = button.Q<Image>(_assetIconElementName);
             Texture iconTex = AssetPreview.GetMiniThumbnail(assetHandle.Asset);
@@ -281,32 +293,40 @@ namespace GBG.AssetQuickAccess.Editor
             //elementContainer.style.paddingBottom = 0;
         }
 
-        private void OnLeftClickAssetListItem(ClickEvent e, AssetHandle handle)
+        private void UnbindAssetListItem(VisualElement element, int index)
         {
-            // ClickEvent will only response mouse left click
-            Assert.AreEqual(e.button, (int)MouseButton.LeftMouse);
+            var button = (Button)element;
+            button.UnregisterCallback<ClickEvent, AssetHandle>(OnClickAssetListItem);
+            button.UnregisterCallback<ContextClickEvent, AssetHandle>(OnContextClickAssetListItem);
+        }
+
+        private void OnClickAssetListItem(ClickEvent e, AssetHandle handle)
+        {
+            e.StopPropagation();
 
             EditorGUIUtility.PingObject(handle.Asset);
-
             if (e.clickCount > 1)
             {
                 AssetDatabase.OpenAsset(handle.Asset);
             }
         }
 
-        private void OnRightOrMiddleClickAssetListItem(MouseDownEvent e, AssetHandle handle)
+        private void OnContextClickAssetListItem(ContextClickEvent e, AssetHandle handle)
         {
-            // MouseDownEvent will not response mouse right or middle click
-            Assert.AreNotEqual(e.button, (int)MouseButton.LeftMouse);
+            e.StopPropagation();
 
-            if (e.button == (int)MouseButton.MiddleMouse)
+            var menu = new GenericDropdownMenu();
+            menu.AddItem("Ping", false, () => EditorGUIUtility.PingObject(handle.Asset));
+            menu.AddItem("Print Guid", false, () => UDebug.Log(handle.Guid, handle.Asset));
+            menu.AddItem("Print Path", false, () => UDebug.Log(AssetDatabase.GUIDToAssetPath(handle.Guid), handle.Asset));
+            menu.AddItem("Open in Folder", false, () => EditorUtility.RevealInFinder(AssetDatabase.GUIDToAssetPath(handle.Guid)));
+            menu.AddItem("Remove", false, () =>
             {
-                EditorGUIUtility.PingObject(handle.Asset);
-
                 _settings.RemoveAsset(handle);
                 _isViewDirty = true;
                 _isSettingsDirty = true;
-            }
+            });
+            menu.DropDown(new Rect(e.mousePosition, Vector2.zero), e.currentTarget as VisualElement);
         }
 
         private void OnReorderAsset(int fromIndex, int toIndex)
