@@ -325,7 +325,7 @@ namespace GBG.AssetQuickAccess.Editor
             menu.AddItem("Ping", false, () => EditorGUIUtility.PingObject(handle.Asset));
             menu.AddItem("Print Guid", false, () => UDebug.Log(handle.Guid, handle.Asset));
             menu.AddItem("Print Path", false, () => UDebug.Log(AssetDatabase.GUIDToAssetPath(handle.Guid), handle.Asset));
-            menu.AddItem("Open in Folder", false, () => EditorUtility.RevealInFinder(AssetDatabase.GUIDToAssetPath(handle.Guid)));
+            menu.AddItem("Show in Folder", false, () => EditorUtility.RevealInFinder(AssetDatabase.GUIDToAssetPath(handle.Guid)));
             menu.AddItem("Remove", false, () =>
             {
                 _settings.RemoveAsset(handle);
