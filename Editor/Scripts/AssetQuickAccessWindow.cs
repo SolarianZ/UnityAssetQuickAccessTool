@@ -1,12 +1,11 @@
 ﻿#if UNITY_2021_3_OR_NEWER
-using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UIElements;
-using UObject = UnityEngine.Object;
 using UDebug = UnityEngine.Debug;
+using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
@@ -16,7 +15,8 @@ namespace GBG.AssetQuickAccess.Editor
         [MenuItem("Window/Asset Management/Asset Quick Access Window")]
         public static void Open()
         {
-            GetWindow<AssetQuickAccessWindow>("Asset Quick Access");
+            var window = GetWindow<AssetQuickAccessWindow>("Asset Quick Access");
+            window.minSize = new Vector2(400, 120);
         }
 
 
@@ -81,6 +81,10 @@ namespace GBG.AssetQuickAccess.Editor
                 bindItem = BindAssetListItem,
                 itemsSource = _settings.AssetHandles,
                 selectionType = SelectionType.None,
+                style =
+                {
+                    flexGrow = 1,
+                }
             };
             _assetListView.itemIndexChanged += OnReorderAsset;
             _rootCanvas.Add(_assetListView);
@@ -98,6 +102,55 @@ namespace GBG.AssetQuickAccess.Editor
                 }
             };
             _rootCanvas.Add(tipsText);
+
+            // Find asset by guid
+            var findAssetContainer = new VisualElement
+            {
+                style =
+                {
+                    flexDirection = FlexDirection.Row,
+                    height = 32,
+                    paddingTop = 3,
+                    paddingBottom = 3,
+                },
+            };
+            _rootCanvas.Add(findAssetContainer);
+            var assetGuidField = new TextField("Find Guid")
+            {
+                style =
+                {
+                    flexGrow = 1,
+                },
+                labelElement =
+                {
+                    style =
+                    {
+                        width = 60,
+                        minWidth = 60,
+                        unityTextAlign = TextAnchor.MiddleCenter,
+                    }
+                }
+            };
+            findAssetContainer.Add(assetGuidField);
+            var findAssetButton = new Button(() =>
+                {
+                    var guid = assetGuidField.value;
+                    var filePath = AssetDatabase.GUIDToAssetPath(guid);
+                    var asset = AssetDatabase.LoadAssetAtPath<UObject>(filePath);
+                    if (asset)
+                    {
+                        EditorGUIUtility.PingObject(asset);
+                        UDebug.Log(filePath, asset);
+                    }
+                    else
+                    {
+                        ShowNotification(new GUIContent($"Can not find asset with guid '{guid}'."));
+                    }
+                })
+            {
+                text = "Find",
+            };
+            findAssetContainer.Add(findAssetButton);
         }
 
 
@@ -119,7 +172,7 @@ namespace GBG.AssetQuickAccess.Editor
                                     Application.productName;
             }
         }
-        
+
         private void LoadSettings()
         {
             PrepareSettingsPrefsKey();
