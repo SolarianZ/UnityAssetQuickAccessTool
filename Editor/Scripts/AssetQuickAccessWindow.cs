@@ -90,7 +90,7 @@ namespace GBG.AssetQuickAccess.Editor
                 makeItem = CreateNewAssetListItem,
                 bindItem = BindAssetListItem,
                 unbindItem = UnbindAssetListItem,
-                itemsSource = AssetQuickAccessSettings.GetAssetHandles(),
+                itemsSource = AssetQuickAccessSettings.GetGuids(),
                 selectionType = SelectionType.None,
                 style =
                 {

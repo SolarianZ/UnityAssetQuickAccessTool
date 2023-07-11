@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditorInternal;
@@ -16,18 +15,25 @@ namespace GBG.AssetQuickAccess.Editor
         private const string _PATH = _FOLDER + "/" + nameof(AssetQuickAccessSettings) + ".asset";
 
         private static AssetQuickAccessSettings _instance;
-        private static readonly List<AssetHandle> _assetHandles = new List<AssetHandle>();
+        private static readonly Dictionary<string, AssetHandle> _assetHandleGuidTable = new Dictionary<string, AssetHandle>();
 
 
-        public static List<AssetHandle> GetAssetHandles()
+        public static List<string> GetGuids()
         {
             LoadOrCreate();
-            return _assetHandles;
+            return _instance._guids;
+        }
+        
+        public static AssetHandle GetAssetHandle(int guidIndex)
+        {
+            var guid = GetGuids()[guidIndex];
+            return _assetHandleGuidTable[guid];
         }
 
-        public static AssetHandle GetAssetHandle(int index)
+        public static AssetHandle GetAssetHandle(string guid)
         {
-            return GetAssetHandles()[index];
+            LoadOrCreate();
+            return _assetHandleGuidTable[guid];
         }
 
         public static void Refresh()
@@ -54,15 +60,15 @@ namespace GBG.AssetQuickAccess.Editor
 
             if (_instance._guids.Contains(assetGuid))
             {
-                Assert.IsTrue(_assetHandles.Any(h => h.Guid == assetGuid));
+                Assert.IsTrue(_assetHandleGuidTable.ContainsKey(assetGuid));
                 var asset = AssetDatabase.LoadAssetAtPath<UObject>(assetPath);
                 Debug.Log($"Asset '{asset}' has already been recorded.", asset);
                 return false;
             }
 
             _instance._guids.Add(assetGuid);
-            Assert.IsFalse(_assetHandles.Any(h => h.Guid == assetGuid));
-            _assetHandles.Add(new AssetHandle(assetGuid));
+            Assert.IsFalse(_assetHandleGuidTable.ContainsKey(assetGuid));
+            _assetHandleGuidTable.Add(assetGuid, new AssetHandle(assetGuid));
             ForceSave();
 
             return true;
@@ -72,7 +78,7 @@ namespace GBG.AssetQuickAccess.Editor
         {
             LoadOrCreate();
 
-            if (!_assetHandles.Remove(handle))
+            if (!_assetHandleGuidTable.Remove(handle.Guid))
             {
                 Assert.IsFalse(_instance._guids.Contains(handle.Guid));
                 Debug.LogError($"Asset handle '{handle}' does not exist.", handle.Asset);
@@ -89,11 +95,11 @@ namespace GBG.AssetQuickAccess.Editor
         {
             LoadOrCreate();
 
-            Assert.IsTrue(_instance._guids.Count == _assetHandles.Count);
+            Assert.IsTrue(_instance._guids.Count == _assetHandleGuidTable.Count);
             if (_instance._guids.Count > 0)
             {
                 _instance._guids.Clear();
-                _assetHandles.Clear();
+                _assetHandleGuidTable.Clear();
                 ForceSave();
             }
 
@@ -122,10 +128,10 @@ namespace GBG.AssetQuickAccess.Editor
 
         private static void PopulateAssetHandles()
         {
-            _assetHandles.Clear();
+            _assetHandleGuidTable.Clear();
             foreach (var guid in _instance._guids)
             {
-                _assetHandles.Add(new AssetHandle(guid));
+                _assetHandleGuidTable.Add(guid, new AssetHandle(guid));
             }
         }
 
