@@ -27,6 +27,9 @@ namespace GBG.AssetQuickAccess.Editor
         {
             onGUIHandler = OnGUI;
 
+            // To avoid conflict with the drag action of the ListView items.
+            this.RegisterCallback<PointerDownEvent>(evt => evt.StopImmediatePropagation());
+
             // content
             style.height = new Length(100, LengthUnit.Percent);
             style.flexDirection = FlexDirection.Row;
@@ -79,10 +82,8 @@ namespace GBG.AssetQuickAccess.Editor
         }
 
 
-        // TODO FIXME: Will conflict with ListView itme drag action
         private void OnGUI()
         {
-
             var e = Event.current;
             switch (e.type)
             {
