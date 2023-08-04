@@ -84,6 +84,7 @@ namespace GBG.AssetQuickAccess.Editor
             // Asset list view
             _assetListView = new ListView
             {
+                fixedItemHeight = 26,
                 reorderable = true,
                 reorderMode = ListViewReorderMode.Animated,
                 makeItem = CreateNewAssetListItem,
@@ -101,7 +102,7 @@ namespace GBG.AssetQuickAccess.Editor
             _assetListView.itemIndexChanged += OnReorderAsset;
             _rootCanvas.Add(_assetListView);
 
-            // Tool tips
+            // Tooltip
             var tipsText = new Label
             {
                 text = "Drag and drop the asset here to add a new item.",
@@ -113,60 +114,6 @@ namespace GBG.AssetQuickAccess.Editor
                 }
             };
             _rootCanvas.Add(tipsText);
-
-            // Find asset by guid/path
-            var findAssetContainer = new VisualElement
-            {
-                style =
-                {
-                    flexDirection = FlexDirection.Row,
-                    height = 32,
-                    minHeight = 32,
-                    paddingTop = 3,
-                    paddingBottom = 3,
-                },
-            };
-            _rootCanvas.Add(findAssetContainer);
-            var assetUrlField = new TextField("Find Asset")
-            {
-                style =
-                {
-                    flexGrow = 1,
-                },
-                labelElement =
-                {
-                    style =
-                    {
-                        width = 68,
-                        minWidth = 68,
-                        unityTextAlign = TextAnchor.MiddleCenter,
-                    }
-                }
-            };
-            findAssetContainer.Add(assetUrlField);
-            var findAssetButton = new Button(() =>
-                {
-                    var url = assetUrlField.value;
-                    var filePath = string.Empty;
-                    if (!string.IsNullOrEmpty(url))
-                    {
-                        if (url.StartsWith("Assets", StringComparison.OrdinalIgnoreCase)) filePath = url;
-                        else filePath = AssetDatabase.GUIDToAssetPath(url);
-                    }
-                    var asset = AssetDatabase.LoadAssetAtPath<UObject>(filePath);
-                    if (asset)
-                    {
-                        EditorGUIUtility.PingObject(asset);
-                    }
-                    else
-                    {
-                        ShowNotification(new GUIContent($"Can not find asset with guid or path '{url}'."));
-                    }
-                })
-            {
-                text = "Find",
-            };
-            findAssetContainer.Add(findAssetButton);
         }
 
         private void RefreshData()
