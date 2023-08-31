@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
@@ -26,11 +25,14 @@ namespace GBG.AssetQuickAccess.Editor
 
             AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
             AssemblyReloadEvents.afterAssemblyReload += RefreshData;
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
         private void OnDisable()
         {
             AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
         }
 
         private void Update()
@@ -114,6 +116,18 @@ namespace GBG.AssetQuickAccess.Editor
                 }
             };
             _rootCanvas.Add(tipsText);
+        }
+
+        private void OnPlayModeStateChanged(PlayModeStateChange change)
+        {
+            // Fix #4
+            // When entering PlayMode, the window will execute OnEnable and reload the data object.
+            // When exiting PlayMode, the data object is destroyed, but OnEnable is not executed.
+            // Therefore, we need to reassign the data source.
+            if (change == PlayModeStateChange.EnteredEditMode)
+            {
+                _assetListView.itemsSource = AssetQuickAccessSettings.GetGuids();
+            }
         }
 
         private void RefreshData()

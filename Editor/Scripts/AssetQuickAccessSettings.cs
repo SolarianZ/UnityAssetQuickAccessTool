@@ -62,7 +62,7 @@ namespace GBG.AssetQuickAccess.Editor
             {
                 Assert.IsTrue(_assetHandleGuidTable.ContainsKey(assetGuid));
                 var asset = AssetDatabase.LoadAssetAtPath<UObject>(assetPath);
-                Debug.Log($"Asset '{asset}' has already been recorded.", asset);
+                //Debug.Log($"Asset '{asset}' has already been recorded.", asset);
                 return false;
             }
 
