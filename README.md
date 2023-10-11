@@ -9,10 +9,9 @@
 - Record commonly used assets.
 - Quickly open commonly used assets.
 - Quickly locate commonly used assets.
-- Print asset guid.
-- Print asset path.
+- Copy asset guid.
+- Copy asset path.
 - Show asset in folder.
-- Find asset by guid or path.
 
 ## Supported Unity Version
 
