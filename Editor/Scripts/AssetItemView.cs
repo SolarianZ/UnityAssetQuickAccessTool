@@ -1,7 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UDebug = UnityEngine.Debug;
 using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
@@ -190,8 +189,10 @@ namespace GBG.AssetQuickAccess.Editor
             menu.AddItem("Ping", false, () => EditorGUIUtility.PingObject(AssetHandle.Asset));
             menu.AddItem("Open", false, () => AssetDatabase.OpenAsset(AssetHandle.Asset));
             menu.AddItem("Ping", false, () => EditorGUIUtility.PingObject(AssetHandle.Asset));
-            menu.AddItem("Print Guid", false, () => UDebug.Log(AssetHandle.Guid, AssetHandle.Asset));
-            menu.AddItem("Print Path", false, () => UDebug.Log(AssetDatabase.GUIDToAssetPath(AssetHandle.Guid), AssetHandle.Asset));
+            menu.AddItem("Copy Guid", false, () => GUIUtility.systemCopyBuffer = AssetHandle.Guid);
+            menu.AddItem("Copy Path", false, () => GUIUtility.systemCopyBuffer = AssetDatabase.GUIDToAssetPath(AssetHandle.Guid));
+            //menu.AddItem("Print Guid", false, () => UDebug.Log(AssetHandle.Guid, AssetHandle.Asset));
+            //menu.AddItem("Print Path", false, () => UDebug.Log(AssetDatabase.GUIDToAssetPath(AssetHandle.Guid), AssetHandle.Asset));
             menu.AddItem("Show in Folder", false, () => EditorUtility.RevealInFinder(AssetDatabase.GUIDToAssetPath(AssetHandle.Guid)));
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
             menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
