@@ -89,7 +89,6 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             Texture iconTex = AssetPreview.GetMiniThumbnail(_assetHandle.Asset);
-
             if (!iconTex)
             {
                 if (!_warningTexture)
