@@ -7,10 +7,10 @@
 ## Features
 
 - Record commonly used assets.
-- Quickly open commonly used assets.
-- Quickly locate commonly used assets.
-- Copy asset guid.
+- Quickly locate/open commonly used assets.
 - Copy asset path.
+- Copy asset guid.
+- Copy asset type.
 - Show asset in folder.
 
 ## Supported Unity Version
@@ -27,11 +27,11 @@ Install this package via [OpenUPM](https://openupm.com/packages/com.greenbamboog
 
 ## How to use
 
-Open the Asset Quick Access window from the "Tools/Bamboo/Asset Quick Access Window" menu.
+Open the Asset Quick Access window from the "Tools/Bamboo/Asset Quick Access" menu.
 
 - **Drag and drop** assets into the window to record them.
 - **Left-click** on a recorded asset to locate (ping) it in the Project window.
 - **Double-click** on a recorded asset to open it.
 - **Right-click** on a recorded asset to display the asset operation menu.
-- Enter the asset's guid or path in the **Find Asset** input field to find it.
+- ~~Enter the asset's guid or path in the **Find Asset** input field to find it~~ (Use Unity's builtin search(`Ctrl K`) instead).
 - Use the "Clear All Items" option in the window's context menu to clear all recorded assets.

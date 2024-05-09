@@ -1,54 +1,39 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
+using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
+    [Serializable]
     internal class AssetHandle
     {
-        public string Guid
-        {
-            get { return _guid; }
-        }
+        public UObject Asset => _asset;
+        public string Guid => _guid;
+        public string TypeFullName => _typeFullName;
 
+        [SerializeField]
+        private UObject _asset;
+        [SerializeField]
         private string _guid;
-
-        public Object Asset
-        {
-            get
-            {
-                return _asset;
-                ;
-            }
-            set
-            {
-                _asset = value;
-                var assetPath = AssetDatabase.GetAssetPath(_asset);
-                _guid = AssetDatabase.AssetPathToGUID(assetPath);
-            }
-        }
-
-        private Object _asset;
+        [SerializeField]
+        private string _typeFullName;
 
 
-        public AssetHandle(string guid)
-        {
-            _guid = guid;
-            var assetPath = AssetDatabase.GUIDToAssetPath(_guid);
-            _asset = AssetDatabase.LoadAssetAtPath<Object>(assetPath);
-        }
-
-        public AssetHandle(Object asset)
+        public AssetHandle(UObject asset)
         {
             _asset = asset;
-            var assetPath = AssetDatabase.GetAssetPath(_asset);
+            string assetPath = AssetDatabase.GetAssetPath(_asset);
             _guid = AssetDatabase.AssetPathToGUID(assetPath);
+            _typeFullName = _asset.GetType().FullName;
         }
 
         public override string ToString()
         {
-            var guidStr = string.IsNullOrEmpty(Guid) ? "null" : Guid;
-            var assetStr = Asset ? Asset.name : "null";
-            return $"Guid:{guidStr}, Asset:{assetStr}";
+            string guidStr = string.IsNullOrEmpty(Guid) ? "null" : Guid;
+            string assetStr = Asset ? Asset.name : "null";
+            string typeFullName = string.IsNullOrEmpty(TypeFullName) ? "null" : TypeFullName;
+            return $"Guid:{guidStr}, Asset:{assetStr}, Type:{typeFullName}";
         }
 
         public string GetDisplayName()
@@ -58,7 +43,7 @@ namespace GBG.AssetQuickAccess.Editor
                 return $"{Asset.name}    <i>({Asset.GetType().Name})</i>";
             }
 
-            return $"Missing <i>(Unknown Asset Guid: {Guid})</i>";
+            return $"Missing <i>(Guid: {Guid}, Type: {TypeFullName})</i>";
         }
     }
 }

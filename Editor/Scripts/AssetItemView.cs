@@ -8,18 +8,15 @@ namespace GBG.AssetQuickAccess.Editor
     internal class AssetItemView : IMGUIContainer
     {
         public static double DoubleClickInterval = 0.3f;
+        private static Texture _warningTexture;
 
-        public Image Icon { get; }
-
-        public Label Title { get; }
-
-        public AssetHandle AssetHandle { get; set; }
+        private AssetHandle _assetHandle;
+        private Image _icon;
+        private Label _title;
+        private MouseAction _mouseAction = MouseAction.None;
+        private double _lastClickTime;
 
         public event System.Action<AssetHandle> OnWantsToRemoveAssetItem;
-
-        private MouseAction _mouseAction = MouseAction.None;
-
-        private double _lastClickTime;
 
 
         public AssetItemView()
@@ -56,7 +53,7 @@ namespace GBG.AssetQuickAccess.Editor
             style.borderBottomLeftRadius = 0;
             style.borderBottomRightRadius = 0;
 
-            Icon = new Image
+            _icon = new Image
             {
                 pickingMode = PickingMode.Ignore,
                 style =
@@ -66,30 +63,63 @@ namespace GBG.AssetQuickAccess.Editor
                     marginLeft = -28 // to avoid overlap with text
                 }
             };
-            Add(Icon);
+            Add(_icon);
 
-            Title = new Label
+            _title = new Label
             {
                 pickingMode = PickingMode.Ignore,
                 style =
                 {
+                    overflow = Overflow.Hidden,
                     unityTextAlign = new StyleEnum<TextAnchor>(TextAnchor.MiddleLeft),
                     textOverflow = new StyleEnum<TextOverflow>(TextOverflow.Ellipsis),
                 }
             };
-            Add(Title);
+            Add(_title);
+        }
+
+        public void Bind(AssetHandle target)
+        {
+            _assetHandle = target;
+            _title.text = target.GetDisplayName();
+
+            if (target.Asset)
+            {
+                tooltip = AssetDatabase.GetAssetPath(target.Asset);
+            }
+
+            Texture iconTex = AssetPreview.GetMiniThumbnail(target.Asset);
+            //new StyleBackground(AssetDatabase.GetCachedIcon(targetPath) as Texture2D)
+            if (!iconTex)
+            {
+                if (!_warningTexture)
+                {
+                    _warningTexture = EditorGUIUtility.IconContent("Warning@2x").image;
+                }
+
+                iconTex = _warningTexture;
+            }
+            _icon.image = iconTex;
+        }
+
+        public void Unbind()
+        {
+            _assetHandle = null;
+            _title.text = null;
+            tooltip = null;
+            _icon.image = null;
         }
 
 
         private void OnGUI()
         {
-            var e = Event.current;
+            Event e = Event.current;
             switch (e.type)
             {
                 case EventType.MouseDown:
                     if (e.button == 0)
                     {
-                        var currentTime = EditorApplication.timeSinceStartup;
+                        double currentTime = EditorApplication.timeSinceStartup;
                         if (currentTime - _lastClickTime < DoubleClickInterval)
                         {
                             _mouseAction = MouseAction.DoubleClick;
@@ -154,8 +184,8 @@ namespace GBG.AssetQuickAccess.Editor
                     {
                         _mouseAction = MouseAction.Drag;
                         DragAndDrop.PrepareStartDrag();
-                        DragAndDrop.objectReferences = new UObject[] { AssetHandle.Asset };
-                        DragAndDrop.paths = new string[] { AssetDatabase.GetAssetPath(AssetHandle.Asset) };
+                        DragAndDrop.objectReferences = new UObject[] { _assetHandle.Asset };
+                        DragAndDrop.paths = new string[] { AssetDatabase.GetAssetPath(_assetHandle.Asset) };
                         DragAndDrop.StartDrag(null);
                     }
                     break;
@@ -174,27 +204,40 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnClick()
         {
-            EditorGUIUtility.PingObject(AssetHandle.Asset);
+            if (_assetHandle.Asset)
+            {
+                EditorGUIUtility.PingObject(_assetHandle.Asset);
+            }
         }
 
         private void OnDoubleClick()
         {
-            AssetDatabase.OpenAsset(AssetHandle.Asset);
+            if (_assetHandle.Asset)
+            {
+                AssetDatabase.OpenAsset(_assetHandle.Asset);
+            }
         }
 
         private void OnContextClick(Vector2 mousePosition)
         {
-            var menu = new GenericDropdownMenu();
-            menu.AddItem("Open", false, () => AssetDatabase.OpenAsset(AssetHandle.Asset));
-            menu.AddItem("Ping", false, () => EditorGUIUtility.PingObject(AssetHandle.Asset));
-            menu.AddItem("Open", false, () => AssetDatabase.OpenAsset(AssetHandle.Asset));
-            menu.AddItem("Ping", false, () => EditorGUIUtility.PingObject(AssetHandle.Asset));
-            menu.AddItem("Copy Guid", false, () => GUIUtility.systemCopyBuffer = AssetHandle.Guid);
-            menu.AddItem("Copy Path", false, () => GUIUtility.systemCopyBuffer = AssetDatabase.GUIDToAssetPath(AssetHandle.Guid));
-            //menu.AddItem("Print Guid", false, () => UDebug.Log(AssetHandle.Guid, AssetHandle.Asset));
-            //menu.AddItem("Print Path", false, () => UDebug.Log(AssetDatabase.GUIDToAssetPath(AssetHandle.Guid), AssetHandle.Asset));
-            menu.AddItem("Show in Folder", false, () => EditorUtility.RevealInFinder(AssetDatabase.GUIDToAssetPath(AssetHandle.Guid)));
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
+            GenericDropdownMenu menu = new GenericDropdownMenu();
+            if (_assetHandle.Asset)
+            {
+                menu.AddItem("Open", false, () => AssetDatabase.OpenAsset(_assetHandle.Asset));
+                menu.AddItem("Copy Path", false, () => GUIUtility.systemCopyBuffer = AssetDatabase.GUIDToAssetPath(_assetHandle.Guid));
+                menu.AddItem("Copy Guid", false, () => GUIUtility.systemCopyBuffer = _assetHandle.Guid);
+                menu.AddItem("Copy Type", false, () => GUIUtility.systemCopyBuffer = _assetHandle.TypeFullName);
+                menu.AddItem("Show in Folder", false, () => EditorUtility.RevealInFinder(AssetDatabase.GUIDToAssetPath(_assetHandle.Guid)));
+            }
+            else
+            {
+                menu.AddDisabledItem("Open", false);
+                menu.AddDisabledItem("Copy Path", false);
+                menu.AddItem("Copy Guid", false, () => GUIUtility.systemCopyBuffer = _assetHandle.Guid);
+                menu.AddItem("Copy Type", false, () => GUIUtility.systemCopyBuffer = _assetHandle.TypeFullName);
+                menu.AddDisabledItem("Show in Folder", false);
+            }
+            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
             menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
         }
 

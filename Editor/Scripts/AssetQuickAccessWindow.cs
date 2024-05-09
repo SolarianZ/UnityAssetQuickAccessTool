@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,21 +7,17 @@ namespace GBG.AssetQuickAccess.Editor
 {
     public class AssetQuickAccessWindow : EditorWindow, IHasCustomMenu
     {
-        [MenuItem("Tools/Bamboo/Asset Quick Access Window")]
-        [MenuItem("Window/Asset Management/Asset Quick Access Window")]
+        [MenuItem("Tools/Bamboo/Asset Quick Access")]
+        [MenuItem("Window/Asset Management/Asset Quick Access")]
         public static void Open()
         {
-            var window = GetWindow<AssetQuickAccessWindow>("Asset Quick Access");
-            window.minSize = new Vector2(400, 120);
+            AssetQuickAccessWindow window = GetWindow<AssetQuickAccessWindow>("Asset Quick Access");
+            window.minSize = new Vector2(300, 120);
         }
 
 
         private void OnEnable()
         {
-            ConvertOldData();
-            CreateView();
-            _isViewDirty = true;
-
             AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
             AssemblyReloadEvents.afterAssemblyReload += RefreshData;
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
@@ -33,6 +28,54 @@ namespace GBG.AssetQuickAccess.Editor
         {
             AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        }
+
+        private void CreateGUI()
+        {
+            // Root canvas
+            // Can not add drag and drop manipulator to rootVisualElement directly,
+            // so we need an extra visual element(_rootCanvas) to handle drag and drop events
+            _rootCanvas = new VisualElement();
+            _rootCanvas.StretchToParentSize();
+            rootVisualElement.Add(_rootCanvas);
+            DragAndDropManipulator dragDropManipulator = new DragAndDropManipulator(_rootCanvas);
+            dragDropManipulator.OnDragAndDropAssets += OnDragAndDropAssets;
+
+            // Asset list view
+            _assetListView = new ListView
+            {
+                fixedItemHeight = 26,
+                reorderable = true,
+                reorderMode = ListViewReorderMode.Animated,
+                makeItem = CreateNewAssetListItem,
+                bindItem = BindAssetListItem,
+                unbindItem = UnbindAssetListItem,
+                itemsSource = AssetQuickAccessLocalCache.instance.AssetHandles,
+                selectionType = SelectionType.None,
+                style =
+                {
+                    flexGrow = 1,
+                    marginTop = 2,
+                    minHeight = 40,
+                }
+            };
+            _assetListView.itemIndexChanged += OnReorderAsset;
+            _rootCanvas.Add(_assetListView);
+
+            // Tooltip
+            Label tipsText = new Label
+            {
+                text = "Drag the asset here to add a new item.",
+                style =
+                {
+                    unityTextAlign = new StyleEnum<TextAnchor>(TextAnchor.MiddleCenter),
+                    textOverflow = new StyleEnum<TextOverflow>(TextOverflow.Ellipsis),
+                    height = 36
+                }
+            };
+            _rootCanvas.Add(tipsText);
+
+            _isViewDirty = true;
         }
 
         private void Update()
@@ -49,75 +92,6 @@ namespace GBG.AssetQuickAccess.Editor
             _isViewDirty = true;
         }
 
-        private void ConvertOldData()
-        {
-            // Delete version 1 data(Conversion not supported)
-            EditorPrefs.DeleteKey("GBG.AssetQuickAccess.SettingsPrefs");
-
-            // Convert Version 2 data to Version 3
-            var prefsKey = "GBG.AssetQuickAccess.SettingsPrefs@" +
-                           Application.companyName + "@" + Application.productName;
-            if (EditorPrefs.HasKey(prefsKey))
-            {
-                var guidPrefs = EditorPrefs.GetString(prefsKey, "");
-                var guids = guidPrefs.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 0; i < guids.Length; i++)
-                {
-                    var guid = guids[i];
-                    var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-                    AssetQuickAccessSettings.AddAsset(assetPath);
-                }
-
-                EditorPrefs.DeleteKey(prefsKey);
-            }
-        }
-
-        private void CreateView()
-        {
-            // Root canvas
-            // Can not add drag and drop manipulator to rootVisualElement directly,
-            // so we need an extra visual element(_rootCanvas) to handle drag and drop events
-            _rootCanvas = new VisualElement();
-            _rootCanvas.StretchToParentSize();
-            rootVisualElement.Add(_rootCanvas);
-            var dragDropManipulator = new DragAndDropManipulator(_rootCanvas);
-            dragDropManipulator.OnDragAndDropAssets += OnDragAndDropAssets;
-
-            // Asset list view
-            _assetListView = new ListView
-            {
-                fixedItemHeight = 26,
-                reorderable = true,
-                reorderMode = ListViewReorderMode.Animated,
-                makeItem = CreateNewAssetListItem,
-                bindItem = BindAssetListItem,
-                unbindItem = UnbindAssetListItem,
-                itemsSource = AssetQuickAccessSettings.GetGuids(),
-                selectionType = SelectionType.None,
-                style =
-                {
-                    flexGrow = 1,
-                    marginTop = 2,
-                    minHeight = 40,
-                }
-            };
-            _assetListView.itemIndexChanged += OnReorderAsset;
-            _rootCanvas.Add(_assetListView);
-
-            // Tooltip
-            var tipsText = new Label
-            {
-                text = "Drag and drop the asset here to add a new item.",
-                style =
-                {
-                    unityTextAlign = new StyleEnum<TextAnchor>(TextAnchor.MiddleCenter),
-                    textOverflow = new StyleEnum<TextOverflow>(TextOverflow.Ellipsis),
-                    height = 36
-                }
-            };
-            _rootCanvas.Add(tipsText);
-        }
-
         private void OnPlayModeStateChanged(PlayModeStateChange change)
         {
             // Fix #4
@@ -126,7 +100,7 @@ namespace GBG.AssetQuickAccess.Editor
             // Therefore, we need to reassign the data source.
             if (change == PlayModeStateChange.EnteredEditMode)
             {
-                _assetListView.itemsSource = AssetQuickAccessSettings.GetGuids();
+                _assetListView.itemsSource = AssetQuickAccessLocalCache.instance.AssetHandles;
             }
         }
 
@@ -135,7 +109,6 @@ namespace GBG.AssetQuickAccess.Editor
             // Fix #1
             EditorApplication.delayCall += () =>
             {
-                AssetQuickAccessSettings.Refresh();
                 _isViewDirty = true;
             };
         }
@@ -144,17 +117,13 @@ namespace GBG.AssetQuickAccess.Editor
         #region Asset List View
 
         private VisualElement _rootCanvas;
-
         private bool _isViewDirty;
-
         private ListView _assetListView;
-
-        private static Texture _warningTexture;
 
 
         private VisualElement CreateNewAssetListItem()
         {
-            var view = new AssetItemView();
+            AssetItemView view = new AssetItemView();
             view.OnWantsToRemoveAssetItem += RemoveAsset;
 
             return view;
@@ -162,45 +131,32 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void BindAssetListItem(VisualElement element, int index)
         {
-            var view = (AssetItemView)element;
-            var assetHandle = AssetQuickAccessSettings.GetAssetHandle(index);
-            view.AssetHandle = assetHandle;
-            view.Title.text = assetHandle.GetDisplayName();
-            view.tooltip = AssetDatabase.GetAssetPath(assetHandle.Asset);
-            Texture iconTex = AssetPreview.GetMiniThumbnail(assetHandle.Asset);
-            if (!iconTex)
-            {
-                if (!_warningTexture)
-                {
-                    _warningTexture = EditorGUIUtility.IconContent("Warning@2x").image;
-                }
-
-                iconTex = _warningTexture;
-            }
-            view.Icon.image = iconTex;
+            AssetItemView view = (AssetItemView)element;
+            AssetHandle assetHandle = (AssetHandle)AssetQuickAccessLocalCache.instance.AssetHandles[index];
+            view.Bind(assetHandle);
         }
 
         private void UnbindAssetListItem(VisualElement element, int index)
         {
-            var view = (AssetItemView)element;
-            view.AssetHandle = null;
+            AssetItemView view = (AssetItemView)element;
+            view.Unbind();
         }
 
         private void OnReorderAsset(int fromIndex, int toIndex)
         {
-            AssetQuickAccessSettings.ForceSave();
+            AssetQuickAccessLocalCache.instance.ForceSave();
         }
 
         private void RemoveAsset(AssetHandle assetHandle)
         {
-            _isViewDirty |= AssetQuickAccessSettings.RemoveAsset(assetHandle);
+            _isViewDirty |= AssetQuickAccessLocalCache.instance.RemoveAsset(assetHandle);
         }
 
         private void OnDragAndDropAssets(IList<string> assetPaths)
         {
             for (int i = 0; i < assetPaths.Count; i++)
             {
-                _isViewDirty |= AssetQuickAccessSettings.AddAsset(assetPaths[i]);
+                _isViewDirty |= AssetQuickAccessLocalCache.instance.AddAsset(assetPaths[i]);
             }
         }
 
@@ -213,10 +169,17 @@ namespace GBG.AssetQuickAccess.Editor
         {
             menu.AddItem(new GUIContent("Clear All Items"), false, () =>
             {
-                AssetQuickAccessSettings.ClearAllAssets();
+                AssetQuickAccessLocalCache.instance.ClearAllAssets();
                 _isViewDirty = true;
             });
-            menu.AddItem(new GUIContent("Print Guids"), false, AssetQuickAccessSettings.PrintGuids);
+            menu.AddItem(new GUIContent("Print All Items"), false,
+                AssetQuickAccessLocalCache.instance.PrintAllAssets);
+            menu.AddSeparator("");
+            menu.AddItem(new GUIContent("[Debug] Inspect settings"), false, () =>
+            {
+                Selection.activeObject = AssetQuickAccessLocalCache.instance;
+            });
+
         }
 
         #endregion
