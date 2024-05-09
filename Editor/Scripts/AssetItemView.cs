@@ -81,15 +81,15 @@ namespace GBG.AssetQuickAccess.Editor
         public void Bind(AssetHandle target)
         {
             _assetHandle = target;
-            _title.text = target.GetDisplayName();
+            _title.text = _assetHandle.GetDisplayName();
 
-            if (target.Asset)
+            if (_assetHandle.Asset)
             {
-                tooltip = AssetDatabase.GetAssetPath(target.Asset);
+                tooltip = AssetDatabase.GetAssetPath(_assetHandle.Asset);
             }
 
-            Texture iconTex = AssetPreview.GetMiniThumbnail(target.Asset);
-            //new StyleBackground(AssetDatabase.GetCachedIcon(targetPath) as Texture2D)
+            Texture iconTex = AssetPreview.GetMiniThumbnail(_assetHandle.Asset);
+
             if (!iconTex)
             {
                 if (!_warningTexture)
