@@ -175,11 +175,19 @@ namespace GBG.AssetQuickAccess.Editor
             menu.AddItem(new GUIContent("Print All Items"), false,
                 AssetQuickAccessLocalCache.instance.PrintAllAssets);
             menu.AddSeparator("");
+
+            // Source Code
+            menu.AddItem(new GUIContent("Source Code"), false, () =>
+            {
+                Application.OpenURL("https://github.com/SolarianZ/UnityAssetQuickAccessTool");
+            });
+            menu.AddSeparator("");
+
+            // Debug
             menu.AddItem(new GUIContent("[Debug] Inspect settings"), false, () =>
             {
                 Selection.activeObject = AssetQuickAccessLocalCache.instance;
             });
-
         }
 
         #endregion
