@@ -30,8 +30,8 @@ namespace GBG.AssetQuickAccess.Editor
             style.height = new Length(100, LengthUnit.Percent);
             style.flexDirection = FlexDirection.Row;
             style.backgroundColor = EditorGUIUtility.isProSkin
-                ? new Color(0.35f, 0.35f, 0.35f, 1.0f)
-                : new Color(0.9f, 0.9f, 0.9f, 1.0f);
+                ? new Color(0.35f, 0.35f, 0.35f, 0.5f)
+                : new Color(0.9f, 0.9f, 0.9f, 0.5f);
             // margin
             style.marginLeft = 0;
             style.marginRight = 0;
