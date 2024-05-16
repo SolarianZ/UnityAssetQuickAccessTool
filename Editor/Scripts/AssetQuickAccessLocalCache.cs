@@ -8,7 +8,7 @@ using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
-    [FilePath("Library/com.greenbamboogames/AssetQuickAccess",
+    [FilePath("Library/com.greenbamboogames.assetquickaccess/LocalCache.asset",
         FilePathAttribute.Location.ProjectFolder)]
     internal class AssetQuickAccessLocalCache : ScriptableSingleton<AssetQuickAccessLocalCache>
     {

@@ -11,13 +11,17 @@ namespace GBG.AssetQuickAccess.Editor
         [MenuItem("Window/Asset Management/Asset Quick Access")]
         public static void Open()
         {
-            AssetQuickAccessWindow window = GetWindow<AssetQuickAccessWindow>("Asset Quick Access");
-            window.minSize = new Vector2(300, 120);
+            GetWindow<AssetQuickAccessWindow>();
         }
 
 
         private void OnEnable()
         {
+            titleContent = EditorGUIUtility.IconContent(
+                EditorGUIUtility.isProSkin ? "d_Favorite" : "Favorite");
+            titleContent.text = "Asset Quick Access";
+            minSize = new Vector2(300, 120);
+
             AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
             AssemblyReloadEvents.afterAssemblyReload += RefreshData;
             // Fix #5: After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
@@ -30,6 +34,14 @@ namespace GBG.AssetQuickAccess.Editor
             AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
             // Fix #5: After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
             //EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        }
+
+        private void ShowButton(Rect position)
+        {
+            if (GUI.Button(position, EditorGUIUtility.IconContent("_Help"), GUI.skin.FindStyle("IconButton")))
+            {
+                Application.OpenURL("https://github.com/SolarianZ/UnityAssetQuickAccessTool");
+            }
         }
 
         private void CreateGUI()
