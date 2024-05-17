@@ -1,17 +1,22 @@
 {
   "name": "com.greenbamboogames.assetquickaccess",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "displayName": "Asset Quick Access!",
   "description": "Asset quick access tool.",
   "unity": "2021.3",
   "documentationUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool",
   "changelogUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases",
   "licensesUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool/blob/main/LICENSE",
-  "keywords": [],
+  "keywords": [
+    "Asset",
+    "Favorite",
+    "Quick Access",
+    "Record"
+  ],
   "author": {
-    "name": "GBG",
+    "name": "ZQY",
     "email": "vdergow@hotmail.com",
-    "url": ""
+    "url": "https://github.com/SolarianZ"
   },
   "type": "tool",
   "hideInEditor": false
