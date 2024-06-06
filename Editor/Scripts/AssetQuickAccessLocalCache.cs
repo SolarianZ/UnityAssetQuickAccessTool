@@ -13,9 +13,21 @@ namespace GBG.AssetQuickAccess.Editor
     internal class AssetQuickAccessLocalCache : ScriptableSingleton<AssetQuickAccessLocalCache>
     {
         public IList AssetHandles => _assetHandles;
+        public AssetCategory SelectedCategory
+        {
+            get { return _selectedCategory; }
+            set
+            {
+                if (_selectedCategory == value) return;
+                _selectedCategory = value;
+                ForceSave();
+            }
+        }
 
         [SerializeField]
         private List<AssetHandle> _assetHandles = new List<AssetHandle>();
+        [SerializeField]
+        private AssetCategory _selectedCategory = AssetCategory.None;
 
 
         public bool AddAsset(string assetPath)
@@ -33,7 +45,7 @@ namespace GBG.AssetQuickAccess.Editor
                 return false;
             }
 
-            AssetHandle handle = new AssetHandle(asset);
+            AssetHandle handle = AssetHandle.CreateFromObject(asset, out _);
             _assetHandles.Add(handle);
             ForceSave();
 
@@ -57,17 +69,6 @@ namespace GBG.AssetQuickAccess.Editor
             ForceSave();
 
             Debug.Log("All asset quick access items cleared.");
-        }
-
-        public void PrintAllAssets()
-        {
-            StringBuilder sb = new StringBuilder();
-            foreach (AssetHandle handle in _assetHandles)
-            {
-                sb.AppendLine(handle.ToString());
-            }
-
-            Debug.Log(sb.ToString());
         }
 
         public void ForceSave()

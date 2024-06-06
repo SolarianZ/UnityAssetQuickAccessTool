@@ -203,18 +203,12 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnClick()
         {
-            if (_assetHandle.Asset)
-            {
-                EditorGUIUtility.PingObject(_assetHandle.Asset);
-            }
+            _assetHandle.PingAsset();
         }
 
         private void OnDoubleClick()
         {
-            if (_assetHandle.Asset)
-            {
-                AssetDatabase.OpenAsset(_assetHandle.Asset);
-            }
+            _assetHandle.OpenAsset();
         }
 
         private void OnContextClick(Vector2 mousePosition)
@@ -223,9 +217,9 @@ namespace GBG.AssetQuickAccess.Editor
             if (_assetHandle.Asset)
             {
                 menu.AddItem("Open", false, () => AssetDatabase.OpenAsset(_assetHandle.Asset));
-                menu.AddItem("Copy Path", false, () => GUIUtility.systemCopyBuffer = AssetDatabase.GUIDToAssetPath(_assetHandle.Guid));
+                menu.AddItem("Copy Path", false, () => GUIUtility.systemCopyBuffer = _assetHandle.GetAssetPath());
                 menu.AddItem("Copy Guid", false, () => GUIUtility.systemCopyBuffer = _assetHandle.Guid);
-                menu.AddItem("Copy Type", false, () => GUIUtility.systemCopyBuffer = _assetHandle.TypeFullName);
+                menu.AddItem("Copy Type", false, () => GUIUtility.systemCopyBuffer = _assetHandle.GetAssetTypeFullName());
                 menu.AddItem("Show in Folder", false, () => EditorUtility.RevealInFinder(AssetDatabase.GUIDToAssetPath(_assetHandle.Guid)));
             }
             else
@@ -233,7 +227,7 @@ namespace GBG.AssetQuickAccess.Editor
                 menu.AddDisabledItem("Open", false);
                 menu.AddDisabledItem("Copy Path", false);
                 menu.AddItem("Copy Guid", false, () => GUIUtility.systemCopyBuffer = _assetHandle.Guid);
-                menu.AddItem("Copy Type", false, () => GUIUtility.systemCopyBuffer = _assetHandle.TypeFullName);
+                menu.AddItem("Copy Type", false, () => GUIUtility.systemCopyBuffer = _assetHandle.GetAssetTypeFullName());
                 menu.AddDisabledItem("Show in Folder", false);
             }
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
