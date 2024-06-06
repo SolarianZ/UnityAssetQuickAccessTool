@@ -24,16 +24,22 @@ namespace GBG.AssetQuickAccess.Editor
 
             AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
             AssemblyReloadEvents.afterAssemblyReload += RefreshData;
-            // Fix #5: After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
-            //EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-            //EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
+            /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
+             * // Fix #5
+             * EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+             * EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+             */
         }
 
         private void OnDisable()
         {
             AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
-            // Fix #5: After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
-            //EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+
+            /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
+            * // Fix #5
+            * EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            */
         }
 
         private void ShowButton(Rect position)
@@ -106,18 +112,20 @@ namespace GBG.AssetQuickAccess.Editor
             _isViewDirty = true;
         }
 
-        // Fix #5: After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
-        //private void OnPlayModeStateChanged(PlayModeStateChange change)
-        //{
-        //    // Fix #4
-        //    // When entering PlayMode, the window will execute OnEnable and reload the data object.
-        //    // When exiting PlayMode, the data object is destroyed, but OnEnable is not executed.
-        //    // Therefore, we need to reassign the data source.
-        //    if (change == PlayModeStateChange.EnteredEditMode)
-        //    {
-        //        _assetListView.itemsSource = AssetQuickAccessLocalCache.instance.AssetHandles;
-        //    }
-        //}
+        /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
+         * // Fix #5
+         * private void OnPlayModeStateChanged(PlayModeStateChange change)
+         * {
+         *     // Fix #4
+         *     // When entering PlayMode, the window will execute OnEnable and reload the data object.
+         *     // When exiting PlayMode, the data object is destroyed, but OnEnable is not executed.
+         *     // Therefore, we need to reassign the data source.
+         *     if (change == PlayModeStateChange.EnteredEditMode)
+         *     {
+         *         _assetListView.itemsSource = AssetQuickAccessLocalCache.instance.AssetHandles;
+         *     }
+         * }
+        */
 
         private void RefreshData()
         {
