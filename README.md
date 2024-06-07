@@ -1,8 +1,10 @@
 # Unity Asset Quick Access Tool.
 
-![Asset Quick Access Window](./Documents~/imgs/img_sample_asset_quick_access_window.png)
-
 [中文](./README_CN.md)
+
+Pin frequently used objects to a separate editor window. An enhanced version of Unity's Favorites feature.
+
+![Asset Quick Access Window](./Documents~/imgs/img_sample_asset_quick_access_window.png)
 
 ## Features
 
@@ -23,7 +25,7 @@ For Unity 2021.2 and earlier versions of Unity, please use version [1.2.1](https
 
 [![openupm](https://img.shields.io/npm/v/com.greenbamboogames.assetquickaccess?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.greenbamboogames.assetquickaccess/)
 
-Install this package via [OpenUPM](https://openupm.com/packages/com.greenbamboogames.assetquickaccess).
+Install this package via [OpenUPM](https://openupm.com/packages/com.greenbamboogames.assetquickaccess), or clone this repository directly into the Packages folder of your project.
 
 ## How to use
 

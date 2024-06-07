@@ -1,8 +1,10 @@
 # Unity资产快速访问工具
 
-![Asset Quick Access Window](./Documents~/imgs/img_sample_asset_quick_access_window.png)
-
 [English](./README.md)
+
+将常用对象固定到独立的编辑器窗口中。Unity Favorites功能的增强版。
+
+![Asset Quick Access Window](./Documents~/imgs/img_sample_asset_quick_access_window.png)
 
 ## 功能
 
@@ -23,7 +25,7 @@ Unity 2021.2及更低版本的Unity请使用 [1.2.1](https://github.com/Solarian
 
 [![openupm](https://img.shields.io/npm/v/com.greenbamboogames.assetquickaccess?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.cn/packages/com.greenbamboogames.assetquickaccess/)
 
-从 [OpenUPM](https://openupm.cn/packages/com.greenbamboogames.assetquickaccess) 安装。
+从 [OpenUPM](https://openupm.cn/packages/com.greenbamboogames.assetquickaccess) 安装，或者直接将此仓库克隆到项目的Packages文件夹下。
 
 ## 如何使用
 
