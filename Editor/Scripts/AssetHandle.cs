@@ -311,9 +311,16 @@ namespace GBG.AssetQuickAccess.Editor
                     }
 
                 case AssetCategory.ExternalFile:
-                    string fileName = Path.GetFileName(_guid);
-                    string folderName = Path.GetDirectoryName(_guid);
-                    return $"{fileName}    <i>({folderName})</i>";
+                    if (File.Exists(_guid))
+                    {
+                        string fileName = Path.GetFileName(_guid);
+                        string folderName = Path.GetDirectoryName(_guid);
+                        return $"{fileName}    <i>({folderName})</i>";
+                    }
+                    else
+                    {
+                        return $"Missing    (Path: {_guid})<i>";
+                    }
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Category), Category, null);

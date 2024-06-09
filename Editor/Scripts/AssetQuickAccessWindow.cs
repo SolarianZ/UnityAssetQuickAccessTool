@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UDebug = UnityEngine.Debug;
+using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
@@ -66,7 +68,7 @@ namespace GBG.AssetQuickAccess.Editor
             const float CategoryButtonMarginRight = 8;
             RadioButtonGroup radioButtonGroup = new RadioButtonGroup();
 #if UNITY_2022_2_OR_NEWER
-            radioButtonGroup.Q(className: RadioButtonGroup.containerUssClassName).style.flexDirection = FlexDirection.Row; 
+            radioButtonGroup.Q(className: RadioButtonGroup.containerUssClassName).style.flexDirection = FlexDirection.Row;
 #endif
             radioButtonGroup.RegisterValueChangedCallback(SelectCategory);
             toolbar.Add(radioButtonGroup);
@@ -116,7 +118,7 @@ namespace GBG.AssetQuickAccess.Editor
             _rootCanvas = new VisualElement() { style = { flexGrow = 1 } };
             rootVisualElement.Add(_rootCanvas);
             DragAndDropManipulator dragDropManipulator = new DragAndDropManipulator(_rootCanvas);
-            dragDropManipulator.OnDragAndDropAssets += OnDragAndDropAssets;
+            dragDropManipulator.OnDragAndDrop += OnDragAndDrop;
 
             // Asset list view
             _assetListView = new ListView
@@ -237,11 +239,35 @@ namespace GBG.AssetQuickAccess.Editor
             _isViewDirty |= LocalCache.RemoveAsset(assetHandle);
         }
 
-        private void OnDragAndDropAssets(IList<string> assetPaths)
+        private void OnDragAndDrop(IList<UObject> objects, IList<string> paths)
         {
-            for (int i = 0; i < assetPaths.Count; i++)
+            StringBuilder errorsBuilder = new StringBuilder();
+
+            // External files
+            if (objects.Count == 0 && paths.Count > 0)
             {
-                _isViewDirty |= LocalCache.AddAsset(assetPaths[i]);
+                // TODO Add External files
+                _isViewDirty |= LocalCache.AddExternalFiles(paths, errorsBuilder);
+                return;
+            }
+
+            // Scene objects and AssetDatabase assets
+            HashSet<UObject> objectHashSet = new HashSet<UObject>(objects);
+            // Sometimes the dragged assets are not included in DragAndDrop.objectReferences, for unknown reasons.
+            // Here we perform a protective check.
+            foreach (string path in paths)
+            {
+                UObject asset = AssetDatabase.LoadAssetAtPath<UObject>(path);
+                if (objectHashSet.Add(asset))
+                {
+                    UDebug.LogWarning($"[AssetQuickAccess] Dragged asset '{asset}' is not included in DragAndDrop.objectReferences.", asset);
+                }
+            }
+            _isViewDirty |= LocalCache.AddObjects(objectHashSet, errorsBuilder);
+
+            if (errorsBuilder.Length > 0)
+            {
+                ShowNotification(new GUIContent(errorsBuilder.ToString()));
             }
         }
 

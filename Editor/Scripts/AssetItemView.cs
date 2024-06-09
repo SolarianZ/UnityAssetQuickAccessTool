@@ -81,6 +81,8 @@ namespace GBG.AssetQuickAccess.Editor
         public void Bind(AssetHandle target)
         {
             _assetHandle = target;
+            _assetHandle.Update();
+
             _title.text = _assetHandle.GetDisplayName();
 
             if (_assetHandle.Asset)

@@ -30,26 +30,98 @@ namespace GBG.AssetQuickAccess.Editor
         private AssetCategory _selectedCategory = AssetCategory.None;
 
 
-        public bool AddAsset(string assetPath)
+        public bool AddExternalFiles(IEnumerable<string> filePaths, StringBuilder errorsBuilder)
         {
-            string assetGuid = AssetDatabase.AssetPathToGUID(assetPath, AssetPathToGUIDOptions.OnlyExistingAssets);
-            if (string.IsNullOrEmpty(assetGuid))
+            errorsBuilder?.Clear();
+
+            bool added = false;
+            foreach (string path in filePaths)
             {
-                Debug.LogError($"Can not load asset at path '{assetPath}'.");
-                return false;
+                if (_assetHandles.Any(h => h.GetAssetPath() == path))
+                {
+                    continue;
+                }
+
+                AssetHandle handle = AssetHandle.CreateFromExternalFile(path, out string error);
+                if (errorsBuilder != null && !string.IsNullOrEmpty(error))
+                {
+                    errorsBuilder.AppendLine(error);
+                }
+
+                if (handle == null)
+                {
+                    continue;
+                }
+
+                _assetHandles.Add(handle);
+                added = true;
             }
 
-            UObject asset = AssetDatabase.LoadAssetAtPath<UObject>(assetPath);
-            if (_assetHandles.Any(handle => handle.Asset == asset))
+            if (added)
             {
-                return false;
+                ForceSave();
             }
 
-            AssetHandle handle = AssetHandle.CreateFromObject(asset, out _);
-            _assetHandles.Add(handle);
-            ForceSave();
+            return added;
+        }
 
-            return true;
+        public bool AddObjects(IEnumerable<UObject> objects, StringBuilder errorsBuilder)
+        {
+            errorsBuilder?.Clear();
+
+            bool added = false;
+            foreach (UObject obj in objects)
+            {
+                if (EditorUtility.IsPersistent(obj))
+                {
+                    if (_assetHandles.Any(h => h.Asset == obj))
+                    {
+                        continue;
+                    }
+
+                    AssetHandle handle = AssetHandle.CreateFromObject(obj, out string error);
+                    if (errorsBuilder != null && !string.IsNullOrEmpty(error))
+                    {
+                        errorsBuilder.AppendLine(error);
+                    }
+
+                    if (handle == null)
+                    {
+                        continue;
+                    }
+
+                    _assetHandles.Add(handle);
+                    added = true;
+                }
+                else
+                {
+                    AssetHandle handle = AssetHandle.CreateFromObject(obj, out string error);
+                    if (errorsBuilder != null && !string.IsNullOrEmpty(error))
+                    {
+                        errorsBuilder.AppendLine(error);
+                    }
+
+                    if (handle == null)
+                    {
+                        continue;
+                    }
+
+                    if (_assetHandles.Any(h => h.Guid == handle.Guid))
+                    {
+                        continue;
+                    }
+
+                    _assetHandles.Add(handle);
+                    added = true;
+                }
+            }
+
+            if (added)
+            {
+                ForceSave();
+            }
+
+            return added;
         }
 
         public bool RemoveAsset(AssetHandle handle)
