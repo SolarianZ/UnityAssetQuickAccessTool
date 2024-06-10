@@ -39,8 +39,8 @@ namespace GBG.AssetQuickAccess.Editor
             style.marginTop = 0;
             style.marginBottom = 0;
             // padding
-            style.paddingLeft = 32; // to avoid overlap with icon
-            style.paddingRight = 0;
+            style.paddingLeft = 2;
+            style.paddingRight = 2;
             style.paddingTop = 0;
             style.paddingBottom = 0;
             // border width
@@ -60,9 +60,9 @@ namespace GBG.AssetQuickAccess.Editor
                 pickingMode = PickingMode.Ignore,
                 style =
                 {
-                    width = new StyleLength(24),
-                    height = new Length(100, LengthUnit.Percent),
-                    marginLeft = -28, // to avoid overlap with text
+                    flexShrink = 0,
+                    width = 24,
+                    height = 24,
                 }
             };
             Add(_AssetIcon);
@@ -72,6 +72,10 @@ namespace GBG.AssetQuickAccess.Editor
                 pickingMode = PickingMode.Ignore,
                 style =
                 {
+                    flexGrow = 1,
+                    flexShrink = 1,
+                    paddingLeft = 2,
+                    paddingRight = 2,
                     overflow = Overflow.Hidden,
                     unityTextAlign = new StyleEnum<TextAnchor>(TextAnchor.MiddleLeft),
                     textOverflow = new StyleEnum<TextOverflow>(TextOverflow.Ellipsis),
@@ -103,7 +107,7 @@ namespace GBG.AssetQuickAccess.Editor
 
                 case AssetCategory.ExternalFile:
                     mainIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import@2x" : "Import@2x");
-                    categoryIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Linked" : "Linked");
+                    categoryIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import" : "Import");
                     break;
 
                 default:
@@ -149,12 +153,11 @@ namespace GBG.AssetQuickAccess.Editor
             _categoryIcon = new Image
             {
                 name = "CategoryIcon",
-                //image = EditorGUIUtility.Load(iconName) as Texture,
+                pickingMode = PickingMode.Ignore,
                 style =
                 {
+                    flexShrink = 0,
                     alignSelf = Align.Center,
-                    position = Position.Absolute,
-                    right = 2,
                     width = 16,
                     height = 16,
                 }
