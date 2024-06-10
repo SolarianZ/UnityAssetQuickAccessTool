@@ -10,7 +10,6 @@ namespace GBG.AssetQuickAccess.Editor
     internal class AssetItemView : IMGUIContainer
     {
         public static double DoubleClickInterval = 0.3f;
-        private static Texture _warningTexture;
 
         private AssetHandle _assetHandle;
         private Image _assetIcon;
@@ -94,23 +93,29 @@ namespace GBG.AssetQuickAccess.Editor
             _title.text = _assetHandle.GetDisplayName();
             tooltip = _assetHandle.GetAssetPath();
 
+            string categoryIconTooltip;
             Texture assetIconTex;
             Texture categoryIconTex;
             switch (_assetHandle.Category)
             {
                 case AssetCategory.ProjectAsset:
-                    assetIconTex = GetObjectIcon(_assetHandle.Asset);
+                    assetIconTex = GetObjectIcon(_assetHandle.Asset, null);
                     categoryIconTex = null;
+                    categoryIconTooltip = null;
                     break;
 
                 case AssetCategory.SceneObject:
-                    assetIconTex = GetObjectIcon(_assetHandle.Asset);
-                    categoryIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_SceneAsset Icon" : "SceneAsset Icon");
+                    assetIconTex = GetObjectIcon(_assetHandle.Asset, _assetHandle.Scene);
+                    categoryIconTex = GetSceneObjectTexture(true);
+                    categoryIconTooltip = "Scene Object";
                     break;
 
                 case AssetCategory.ExternalFile:
-                    assetIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import@2x" : "Import@2x");
-                    categoryIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import" : "Import");
+                    assetIconTex = File.Exists(_assetHandle.GetAssetPath())
+                        ? GetExternalFileTexture(false)
+                        : GetWarningTexture();
+                    categoryIconTex = GetExternalFileTexture(true);
+                    categoryIconTooltip = "External File";
                     break;
 
                 default:
@@ -125,11 +130,13 @@ namespace GBG.AssetQuickAccess.Editor
                     CreateCategoryIcon();
                 }
 
+                _categoryIcon.tooltip = categoryIconTooltip;
                 _categoryIcon.image = categoryIconTex;
                 _categoryIcon.style.display = DisplayStyle.Flex;
             }
             else if (_categoryIcon != null)
             {
+                _categoryIcon.tooltip = categoryIconTooltip;
                 _categoryIcon.image = null;
                 _categoryIcon.style.display = DisplayStyle.None;
             }
@@ -143,6 +150,7 @@ namespace GBG.AssetQuickAccess.Editor
             _assetIcon.image = null;
             if (_categoryIcon != null)
             {
+                _categoryIcon.tooltip = null;
                 _categoryIcon.image = null;
                 _categoryIcon.style.display = DisplayStyle.None;
             }
@@ -352,21 +360,91 @@ namespace GBG.AssetQuickAccess.Editor
             menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
         }
 
-        private static Texture GetObjectIcon(UObject obj)
-        {
-            Texture iconTex = AssetPreview.GetMiniThumbnail(obj);
-            if (!iconTex)
-            {
-                if (!_warningTexture)
-                {
-                    _warningTexture = EditorGUIUtility.IconContent("Warning@2x").image;
-                }
 
-                iconTex = _warningTexture;
+        #region Static Textures
+
+        private static Texture _sceneObjectTextureCache;
+        private static Texture _sceneObjectTextureSmallCache;
+        private static Texture _externalFileTextureCache;
+        private static Texture _externalFileTextureSmallCache;
+        private static Texture _warningTextureCache;
+
+        private static Texture GetObjectIcon(UObject obj, SceneAsset scene)
+        {
+            Texture iconTex;
+            if (obj)
+            {
+                iconTex = AssetPreview.GetMiniThumbnail(obj);
+            }
+            else if (scene)
+            {
+                iconTex = GetSceneObjectTexture(false);
+            }
+            else
+            {
+                iconTex = GetWarningTexture();
             }
 
             return iconTex;
         }
+
+        private static Texture GetSceneObjectTexture(bool small)
+        {
+            if (small)
+            {
+                if (!_sceneObjectTextureSmallCache)
+                {
+                    _sceneObjectTextureSmallCache = (Texture)EditorGUIUtility.Load(
+                        EditorGUIUtility.isProSkin
+                        ? "d_UnityEditor.SceneHierarchyWindow"
+                        : "UnityEditor.SceneHierarchyWindow");
+                }
+
+                return _sceneObjectTextureSmallCache;
+            }
+
+            if (!_sceneObjectTextureCache)
+            {
+                _sceneObjectTextureCache = (Texture)EditorGUIUtility.Load(
+                    EditorGUIUtility.isProSkin
+                    ? "d_UnityEditor.SceneHierarchyWindow@2x"
+                    : "UnityEditor.SceneHierarchyWindow@2x");
+            }
+
+            return _sceneObjectTextureCache;
+        }
+
+        private static Texture GetExternalFileTexture(bool small)
+        {
+            if (small)
+            {
+                if (!_externalFileTextureSmallCache)
+                {
+                    _externalFileTextureSmallCache = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import" : "Import");
+                }
+
+                return _externalFileTextureSmallCache;
+            }
+
+            if (!_externalFileTextureCache)
+            {
+                _externalFileTextureCache = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import@2x" : "Import@2x");
+            }
+
+            return _externalFileTextureCache;
+        }
+
+        private static Texture GetWarningTexture()
+        {
+            if (!_warningTextureCache)
+            {
+                _warningTextureCache = (Texture)EditorGUIUtility.Load("Warning@2x");
+            }
+
+            return _warningTextureCache;
+        }
+
+        #endregion
 
 
         enum MouseAction : byte

@@ -29,8 +29,10 @@ namespace GBG.AssetQuickAccess.Editor
             titleContent.text = "Asset Quick Access";
             minSize = new Vector2(330, 180);
 
-            AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
-            AssemblyReloadEvents.afterAssemblyReload += RefreshData;
+            AssemblyReloadEvents.afterAssemblyReload -= RefreshDataDelay;
+            AssemblyReloadEvents.afterAssemblyReload += RefreshDataDelay;
+            EditorApplication.hierarchyChanged -= OnHierarchyChanged;
+            EditorApplication.hierarchyChanged += OnHierarchyChanged;
 
             /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
              * // Fix #5
@@ -41,12 +43,21 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnDisable()
         {
-            AssemblyReloadEvents.afterAssemblyReload -= RefreshData;
+            AssemblyReloadEvents.afterAssemblyReload -= RefreshDataDelay;
+            EditorApplication.hierarchyChanged -= OnHierarchyChanged;
 
             /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
             * // Fix #5
             * EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             */
+        }
+
+        private void OnFocus()
+        {
+            if (_setViewDirtyOnFocus)
+            {
+                _isViewDirty = true;
+            }
         }
 
         private void ShowButton(Rect position)
@@ -186,7 +197,19 @@ namespace GBG.AssetQuickAccess.Editor
          * }
         */
 
-        private void RefreshData()
+        private void OnHierarchyChanged()
+        {
+            if (hasFocus)
+            {
+                _isViewDirty = true;
+            }
+            else
+            {
+                _setViewDirtyOnFocus = true;
+            }
+        }
+
+        private void RefreshDataDelay()
         {
             // Fix #1
             EditorApplication.delayCall += () =>
@@ -205,6 +228,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         private VisualElement _rootCanvas;
         private bool _isViewDirty;
+        private bool _setViewDirtyOnFocus;
         private ListView _assetListView;
 
 
