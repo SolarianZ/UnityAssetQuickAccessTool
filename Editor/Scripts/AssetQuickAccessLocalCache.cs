@@ -39,6 +39,8 @@ namespace GBG.AssetQuickAccess.Editor
             {
                 if (_assetHandles.Any(h => h.GetAssetPath() == path))
                 {
+                    errorsBuilder ??= new StringBuilder();
+                    errorsBuilder.AppendLine("File already exists.");
                     continue;
                 }
 
@@ -77,6 +79,8 @@ namespace GBG.AssetQuickAccess.Editor
                 {
                     if (_assetHandles.Any(h => h.Asset == obj))
                     {
+                        errorsBuilder ??= new StringBuilder();
+                        errorsBuilder.AppendLine("Object already exists.");
                         continue;
                     }
 
