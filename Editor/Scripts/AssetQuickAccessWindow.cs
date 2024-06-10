@@ -19,6 +19,8 @@ namespace GBG.AssetQuickAccess.Editor
         }
 
 
+        private bool _isViewDirty;
+        private bool _setViewDirtyOnFocus;
         private AssetQuickAccessLocalCache LocalCache => AssetQuickAccessLocalCache.instance;
 
 
@@ -31,8 +33,8 @@ namespace GBG.AssetQuickAccess.Editor
 
             AssemblyReloadEvents.afterAssemblyReload -= RefreshDataDelay;
             AssemblyReloadEvents.afterAssemblyReload += RefreshDataDelay;
-            EditorApplication.hierarchyChanged -= OnHierarchyChanged;
-            EditorApplication.hierarchyChanged += OnHierarchyChanged;
+            EditorApplication.hierarchyChanged -= SetViewDirty;
+            EditorApplication.hierarchyChanged += SetViewDirty;
 
             /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
              * // Fix #5
@@ -44,7 +46,7 @@ namespace GBG.AssetQuickAccess.Editor
         private void OnDisable()
         {
             AssemblyReloadEvents.afterAssemblyReload -= RefreshDataDelay;
-            EditorApplication.hierarchyChanged -= OnHierarchyChanged;
+            EditorApplication.hierarchyChanged -= SetViewDirty;
 
             /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
             * // Fix #5
@@ -70,6 +72,10 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void CreateGUI()
         {
+            // For add drag and drop
+            rootVisualElement.pickingMode = PickingMode.Position;
+
+
             #region Toolbar
 
             // Toolbar
@@ -123,12 +129,7 @@ namespace GBG.AssetQuickAccess.Editor
             #endregion
 
 
-            // Root canvas
-            // Can not add drag and drop manipulator to rootVisualElement directly,
-            // so we need an extra visual element(_rootCanvas) to handle drag and drop events
-            _rootCanvas = new VisualElement() { style = { flexGrow = 1 } };
-            rootVisualElement.Add(_rootCanvas);
-            DragAndDropManipulator dragDropManipulator = new DragAndDropManipulator(_rootCanvas);
+            DragAndDropManipulator dragDropManipulator = new DragAndDropManipulator(rootVisualElement);
             dragDropManipulator.OnDragAndDrop += OnDragAndDrop;
 
             // Asset list view
@@ -150,7 +151,7 @@ namespace GBG.AssetQuickAccess.Editor
                 }
             };
             _assetListView.itemIndexChanged += OnReorderAsset;
-            _rootCanvas.Add(_assetListView);
+            rootVisualElement.Add(_assetListView);
 
             // Tooltip
             Label tipsText = new Label
@@ -163,7 +164,7 @@ namespace GBG.AssetQuickAccess.Editor
                     height = 36
                 }
             };
-            _rootCanvas.Add(tipsText);
+            rootVisualElement.Add(tipsText);
 
             _isViewDirty = true;
         }
@@ -179,7 +180,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnProjectChange()
         {
-            _isViewDirty = true;
+            SetViewDirty();
         }
 
         /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
@@ -197,7 +198,7 @@ namespace GBG.AssetQuickAccess.Editor
          * }
         */
 
-        private void OnHierarchyChanged()
+        private void SetViewDirty()
         {
             if (hasFocus)
             {
@@ -224,11 +225,15 @@ namespace GBG.AssetQuickAccess.Editor
         }
 
 
+        #region Toolbar
+
+
+
+        #endregion
+
+
         #region Asset List View
 
-        private VisualElement _rootCanvas;
-        private bool _isViewDirty;
-        private bool _setViewDirtyOnFocus;
         private ListView _assetListView;
 
 

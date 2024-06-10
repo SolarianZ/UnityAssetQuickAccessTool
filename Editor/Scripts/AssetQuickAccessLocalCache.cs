@@ -80,7 +80,7 @@ namespace GBG.AssetQuickAccess.Editor
                     if (_assetHandles.Any(h => h.Asset == obj))
                     {
                         errorsBuilder ??= new StringBuilder();
-                        errorsBuilder.AppendLine("Object already exists.");
+                        errorsBuilder.AppendLine("Asset already exists.");
                         continue;
                     }
 
@@ -101,6 +101,13 @@ namespace GBG.AssetQuickAccess.Editor
                 }
                 else
                 {
+                    if (_assetHandles.Any(h => h.Asset == obj))
+                    {
+                        errorsBuilder ??= new StringBuilder();
+                        errorsBuilder.AppendLine("Object already exists.");
+                        continue;
+                    }
+
                     AssetHandle handle = AssetHandle.CreateFromObject(obj, out string error);
                     if (!string.IsNullOrEmpty(error))
                     {
