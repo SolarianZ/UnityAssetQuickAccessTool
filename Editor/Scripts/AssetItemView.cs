@@ -11,7 +11,8 @@ namespace GBG.AssetQuickAccess.Editor
         private static Texture _warningTexture;
 
         private AssetHandle _assetHandle;
-        private Image _icon;
+        private Image _AssetIcon;
+        private Image _categoryIcon;
         private Label _title;
         private MouseAction _mouseAction = MouseAction.None;
         private double _lastClickTime;
@@ -53,17 +54,18 @@ namespace GBG.AssetQuickAccess.Editor
             style.borderBottomLeftRadius = 0;
             style.borderBottomRightRadius = 0;
 
-            _icon = new Image
+            _AssetIcon = new Image
             {
+                name = "AssetIcon",
                 pickingMode = PickingMode.Ignore,
                 style =
                 {
                     width = new StyleLength(24),
                     height = new Length(100, LengthUnit.Percent),
-                    marginLeft = -28 // to avoid overlap with text
+                    marginLeft = -28, // to avoid overlap with text
                 }
             };
-            Add(_icon);
+            Add(_AssetIcon);
 
             _title = new Label
             {
@@ -84,23 +86,49 @@ namespace GBG.AssetQuickAccess.Editor
             _assetHandle.Update();
 
             _title.text = _assetHandle.GetDisplayName();
+            tooltip = _assetHandle.GetAssetPath();
 
-            if (_assetHandle.Asset)
+            Texture mainIconTex;
+            Texture categoryIconTex;
+            switch (_assetHandle.Category)
             {
-                tooltip = AssetDatabase.GetAssetPath(_assetHandle.Asset);
+                case AssetCategory.ProjectAsset:
+                    mainIconTex = GetObjectIcon(_assetHandle.Asset);
+                    categoryIconTex = null;
+                    break;
+                case AssetCategory.SceneObject:
+                    mainIconTex = GetObjectIcon(_assetHandle.Asset);
+                    categoryIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_SceneAsset Icon" : "SceneAsset Icon");
+                    break;
+
+                case AssetCategory.ExternalFile:
+                    mainIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import@2x" : "Import@2x");
+                    categoryIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Linked" : "Linked");
+                    break;
+
+                default:
+                    throw new System.ArgumentOutOfRangeException(nameof(_assetHandle.Category), _assetHandle.Category, null);
             }
 
-            Texture iconTex = AssetPreview.GetMiniThumbnail(_assetHandle.Asset);
-            if (!iconTex)
+            _AssetIcon.image = mainIconTex;
+            if (categoryIconTex)
             {
-                if (!_warningTexture)
+                if (_categoryIcon == null)
                 {
-                    _warningTexture = EditorGUIUtility.IconContent("Warning@2x").image;
+                    CreateCategoryIcon();
                 }
 
-                iconTex = _warningTexture;
+                _categoryIcon.image = categoryIconTex;
+                _categoryIcon.style.display = DisplayStyle.Flex;
             }
-            _icon.image = iconTex;
+            else
+            {
+                if (_categoryIcon != null)
+                {
+                    _categoryIcon.image = null;
+                    _categoryIcon.style.display = DisplayStyle.None;
+                }
+            }
         }
 
         public void Unbind()
@@ -108,9 +136,31 @@ namespace GBG.AssetQuickAccess.Editor
             _assetHandle = null;
             _title.text = null;
             tooltip = null;
-            _icon.image = null;
+            _AssetIcon.image = null;
+            if (_categoryIcon != null)
+            {
+                _categoryIcon.image = null;
+                _categoryIcon.style.display = DisplayStyle.None;
+            }
         }
 
+        private void CreateCategoryIcon()
+        {
+            _categoryIcon = new Image
+            {
+                name = "CategoryIcon",
+                //image = EditorGUIUtility.Load(iconName) as Texture,
+                style =
+                {
+                    alignSelf = Align.Center,
+                    position = Position.Absolute,
+                    right = 2,
+                    width = 16,
+                    height = 16,
+                }
+            };
+            Add(_categoryIcon);
+        }
 
         private void OnGUI()
         {
@@ -234,6 +284,23 @@ namespace GBG.AssetQuickAccess.Editor
             }
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
             menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
+        }
+
+
+        private static Texture GetObjectIcon(UObject obj)
+        {
+            Texture iconTex = AssetPreview.GetMiniThumbnail(obj);
+            if (!iconTex)
+            {
+                if (!_warningTexture)
+                {
+                    _warningTexture = EditorGUIUtility.IconContent("Warning@2x").image;
+                }
+
+                iconTex = _warningTexture;
+            }
+
+            return iconTex;
         }
 
 
