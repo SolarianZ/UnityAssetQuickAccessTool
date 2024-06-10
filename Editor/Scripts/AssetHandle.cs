@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UObject = UnityEngine.Object;
 using UScene = UnityEngine.SceneManagement.Scene;
@@ -183,11 +184,14 @@ namespace GBG.AssetQuickAccess.Editor
                     }
                     else if (Scene)
                     {
-                        AssetDatabase.OpenAsset(Scene);
-                        Update();
-                        if (_asset)
+                        if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                         {
-                            AssetDatabase.OpenAsset(_asset);
+                            AssetDatabase.OpenAsset(Scene);
+                            Update();
+                            if (_asset)
+                            {
+                                AssetDatabase.OpenAsset(_asset);
+                            }
                         }
                     }
                     break;
@@ -202,6 +206,26 @@ namespace GBG.AssetQuickAccess.Editor
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Category), Category, null);
             }
+        }
+
+        public void ShowInFolder()
+        {
+            EditorUtility.RevealInFinder(GetAssetPath());
+        }
+
+        public void CopyPathToSystemBuffer()
+        {
+            GUIUtility.systemCopyBuffer = GetAssetPath();
+        }
+
+        public void CopyGuidToSystemBuffer()
+        {
+            GUIUtility.systemCopyBuffer = Guid;
+        }
+
+        public void CopyTypeFullNameToSystemBuffer()
+        {
+            GUIUtility.systemCopyBuffer = GetAssetTypeFullName();
         }
 
         public string GetAssetName()

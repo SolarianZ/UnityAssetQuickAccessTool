@@ -1,5 +1,7 @@
-﻿using UnityEditor;
+﻿using System.IO;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.UIElements;
 using UObject = UnityEngine.Object;
 
@@ -271,27 +273,84 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnContextClick(Vector2 mousePosition)
         {
+            switch (_assetHandle.Category)
+            {
+                case AssetCategory.ProjectAsset:
+                    ShowProjectAssetContextMenu(mousePosition);
+                    break;
+
+                case AssetCategory.SceneObject:
+                    ShowSceneObjectContextMenu(mousePosition);
+                    break;
+
+                case AssetCategory.ExternalFile:
+                    ShowExternalFileContextMenu(mousePosition);
+                    break;
+
+                default:
+                    throw new System.ArgumentOutOfRangeException(nameof(_assetHandle.Category), _assetHandle.Category, null);
+            }
+
+        }
+
+        private void ShowProjectAssetContextMenu(Vector2 mousePosition)
+        {
+            Assert.IsTrue(_assetHandle.Category == AssetCategory.ProjectAsset);
+
             GenericDropdownMenu menu = new GenericDropdownMenu();
             if (_assetHandle.Asset)
             {
-                menu.AddItem("Open", false, () => AssetDatabase.OpenAsset(_assetHandle.Asset));
-                menu.AddItem("Copy Path", false, () => GUIUtility.systemCopyBuffer = _assetHandle.GetAssetPath());
-                menu.AddItem("Copy Guid", false, () => GUIUtility.systemCopyBuffer = _assetHandle.Guid);
-                menu.AddItem("Copy Type", false, () => GUIUtility.systemCopyBuffer = _assetHandle.GetAssetTypeFullName());
-                menu.AddItem("Show in Folder", false, () => EditorUtility.RevealInFinder(AssetDatabase.GUIDToAssetPath(_assetHandle.Guid)));
+                menu.AddItem("Open", false, _assetHandle.OpenAsset);
+                menu.AddItem("Copy Path", false, _assetHandle.CopyPathToSystemBuffer);
+                menu.AddItem("Copy Guid", false, _assetHandle.CopyGuidToSystemBuffer);
+                menu.AddItem("Copy Type", false, _assetHandle.CopyTypeFullNameToSystemBuffer);
+                menu.AddItem("Show in Folder", false, _assetHandle.ShowInFolder);
             }
             else
             {
-                menu.AddDisabledItem("Open", false);
-                menu.AddDisabledItem("Copy Path", false);
-                menu.AddItem("Copy Guid", false, () => GUIUtility.systemCopyBuffer = _assetHandle.Guid);
-                menu.AddItem("Copy Type", false, () => GUIUtility.systemCopyBuffer = _assetHandle.GetAssetTypeFullName());
-                menu.AddDisabledItem("Show in Folder", false);
+                menu.AddItem("Copy Guid", false, _assetHandle.CopyGuidToSystemBuffer);
             }
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
             menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
         }
 
+        private void ShowSceneObjectContextMenu(Vector2 mousePosition)
+        {
+            Assert.IsTrue(_assetHandle.Category == AssetCategory.SceneObject);
+
+            GenericDropdownMenu menu = new GenericDropdownMenu();
+            if (_assetHandle.Asset)
+            {
+                menu.AddItem("Open", false, _assetHandle.OpenAsset);
+                menu.AddItem("Copy Hierarchy Path", false, _assetHandle.CopyPathToSystemBuffer);
+                menu.AddItem("Copy Type", false, _assetHandle.CopyTypeFullNameToSystemBuffer);
+            }
+            else if (_assetHandle.Scene)
+            {
+                menu.AddItem("Open in Scene", false, _assetHandle.OpenAsset);
+            }
+            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
+            menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
+        }
+
+        private void ShowExternalFileContextMenu(Vector2 mousePosition)
+        {
+            Assert.IsTrue(_assetHandle.Category == AssetCategory.ExternalFile);
+
+            GenericDropdownMenu menu = new GenericDropdownMenu();
+            if (File.Exists(_assetHandle.GetAssetPath()))
+            {
+                menu.AddItem("Open", false, _assetHandle.OpenAsset);
+                menu.AddItem("Copy Path", false, _assetHandle.CopyPathToSystemBuffer);
+                menu.AddItem("Show in Folder", false, _assetHandle.ShowInFolder);
+            }
+            else
+            {
+                menu.AddItem("Copy Path", false, _assetHandle.CopyPathToSystemBuffer);
+            }
+            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
+            menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
+        }
 
         private static Texture GetObjectIcon(UObject obj)
         {
