@@ -118,37 +118,43 @@ namespace GBG.AssetQuickAccess.Editor
 
         public void Update()
         {
-            // Project Asset
-            if (Category == AssetCategory.ProjectAsset)
+            switch (Category)
             {
-                if (_asset && _asset.name != _fallbackName)
-                {
-                    _fallbackName = _asset.name;
-                    ForceSaveLocalCache();
-                }
-            }
-            // Scene Object
-            else if (Category == AssetCategory.SceneObject)
-            {
-                if ((!Scene || !_asset) && GlobalObjectId.TryParse(_guid, out GlobalObjectId globalObjectId))
-                {
-                    if (!Scene)
+                case AssetCategory.ProjectAsset:
+                    if (_asset && _asset.name != _fallbackName)
                     {
-                        string sceneGuid = globalObjectId.assetGUID.ToString();
-                        string scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
-                        Scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
+                        _fallbackName = _asset.name;
+                        ForceSaveLocalCache();
                     }
+                    break;
 
-                    if (!_asset)
+                case AssetCategory.SceneObject:
+                    if ((!Scene || !_asset) && GlobalObjectId.TryParse(_guid, out GlobalObjectId globalObjectId))
                     {
-                        _asset = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalObjectId);
-                        if (_asset && _asset.name != _fallbackName)
+                        if (!Scene)
                         {
-                            _fallbackName = _asset.name;
-                            ForceSaveLocalCache();
+                            string sceneGuid = globalObjectId.assetGUID.ToString();
+                            string scenePath = AssetDatabase.GUIDToAssetPath(sceneGuid);
+                            Scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
+                        }
+
+                        if (!_asset)
+                        {
+                            _asset = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalObjectId);
+                            if (_asset && _asset.name != _fallbackName)
+                            {
+                                _fallbackName = _asset.name;
+                                ForceSaveLocalCache();
+                            }
                         }
                     }
-                }
+                    break;
+
+                case AssetCategory.ExternalFile:
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(Category), Category, null);
             }
         }
 
@@ -241,7 +247,7 @@ namespace GBG.AssetQuickAccess.Editor
                     return _fallbackName;
 
                 case AssetCategory.ExternalFile:
-                    return Path.GetFileName(_guid);
+                    return Path.GetFileName(GetAssetPath());
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Category), Category, null);
@@ -316,34 +322,35 @@ namespace GBG.AssetQuickAccess.Editor
         {
             if (Asset)
             {
-                return $"{Asset.name}    <i>({Asset.GetType().Name})</i>";
+                return $"{GetAssetName()}    <i>({Asset.GetType().Name})</i>";
             }
 
             switch (Category)
             {
                 case AssetCategory.ProjectAsset:
-                    return $"Missing    <i>(Name: {_fallbackName}, Guid: {Guid})</i>";
+                    return $"Missing    <i>(Name: {GetAssetName()}, Guid: {Guid})</i>";
 
                 case AssetCategory.SceneObject:
                     if (Scene)
                     {
-                        return $"{_fallbackName}    <i>(@{Scene.name})</i>";
+                        return $"{GetAssetName()}    <i>(@{Scene.name})</i>";
                     }
                     else
                     {
-                        return $"Missing    (Name: {_fallbackName}, Scene: null)<i>";
+                        return $"Missing    (Name: {GetAssetName()}, Scene: null)<i>";
                     }
 
                 case AssetCategory.ExternalFile:
+                    string filePath = GetAssetPath();
                     if (File.Exists(_guid))
                     {
-                        string fileName = Path.GetFileName(_guid);
-                        string folderName = Path.GetDirectoryName(_guid);
+                        string fileName = Path.GetFileName(filePath);
+                        string folderName = Path.GetDirectoryName(filePath);
                         return $"{fileName}    <i>({folderName})</i>";
                     }
                     else
                     {
-                        return $"Missing    (Path: {_guid})<i>";
+                        return $"Missing    (Path: {filePath})<i>";
                     }
 
                 default:

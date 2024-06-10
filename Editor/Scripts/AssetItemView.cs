@@ -14,7 +14,7 @@ namespace GBG.AssetQuickAccess.Editor
         private AssetHandle _assetHandle;
         private Image _assetIcon;
         private Image _categoryIcon;
-        private Label _title;
+        private Label _label;
         private MouseAction _mouseAction = MouseAction.None;
         private double _lastClickTime;
 
@@ -68,8 +68,9 @@ namespace GBG.AssetQuickAccess.Editor
             };
             Add(_assetIcon);
 
-            _title = new Label
+            _label = new Label
             {
+                name = "AssetLabel",
                 pickingMode = PickingMode.Ignore,
                 style =
                 {
@@ -82,7 +83,7 @@ namespace GBG.AssetQuickAccess.Editor
                     textOverflow = TextOverflow.Ellipsis,
                 }
             };
-            Add(_title);
+            Add(_label);
         }
 
         public void Bind(AssetHandle target)
@@ -90,8 +91,8 @@ namespace GBG.AssetQuickAccess.Editor
             _assetHandle = target;
             _assetHandle.Update();
 
-            _title.text = _assetHandle.GetDisplayName();
             tooltip = _assetHandle.GetAssetPath();
+            _label.text = _assetHandle.GetDisplayName();
 
             string categoryIconTooltip;
             Texture assetIconTex;
@@ -145,9 +146,10 @@ namespace GBG.AssetQuickAccess.Editor
         public void Unbind()
         {
             _assetHandle = null;
-            _title.text = null;
+
             tooltip = null;
             _assetIcon.image = null;
+            _label.text = null;
             if (_categoryIcon != null)
             {
                 _categoryIcon.tooltip = null;
@@ -166,7 +168,7 @@ namespace GBG.AssetQuickAccess.Editor
             _categoryIcon = new Image
             {
                 name = "CategoryIcon",
-                pickingMode = PickingMode.Ignore,
+                //pickingMode = PickingMode.Ignore, // Allow picking to show tooltip
                 style =
                 {
                     flexShrink = 0,
@@ -175,6 +177,9 @@ namespace GBG.AssetQuickAccess.Editor
                     height = 16,
                 }
             };
+            // To avoid conflict with the drag action of the ListView items.
+            _categoryIcon.RegisterCallback<PointerDownEvent>(evt => evt.StopImmediatePropagation());
+
             Add(_categoryIcon);
         }
 
@@ -298,7 +303,6 @@ namespace GBG.AssetQuickAccess.Editor
                 default:
                     throw new System.ArgumentOutOfRangeException(nameof(_assetHandle.Category), _assetHandle.Category, null);
             }
-
         }
 
         private void ShowProjectAssetContextMenu(Vector2 mousePosition)
