@@ -11,7 +11,7 @@ namespace GBG.AssetQuickAccess.Editor
         private static Texture _warningTexture;
 
         private AssetHandle _assetHandle;
-        private Image _AssetIcon;
+        private Image _assetIcon;
         private Image _categoryIcon;
         private Label _title;
         private MouseAction _mouseAction = MouseAction.None;
@@ -54,7 +54,7 @@ namespace GBG.AssetQuickAccess.Editor
             style.borderBottomLeftRadius = 0;
             style.borderBottomRightRadius = 0;
 
-            _AssetIcon = new Image
+            _assetIcon = new Image
             {
                 name = "AssetIcon",
                 pickingMode = PickingMode.Ignore,
@@ -65,7 +65,7 @@ namespace GBG.AssetQuickAccess.Editor
                     height = 24,
                 }
             };
-            Add(_AssetIcon);
+            Add(_assetIcon);
 
             _title = new Label
             {
@@ -77,8 +77,8 @@ namespace GBG.AssetQuickAccess.Editor
                     paddingLeft = 2,
                     paddingRight = 2,
                     overflow = Overflow.Hidden,
-                    unityTextAlign = new StyleEnum<TextAnchor>(TextAnchor.MiddleLeft),
-                    textOverflow = new StyleEnum<TextOverflow>(TextOverflow.Ellipsis),
+                    unityTextAlign = TextAnchor.MiddleLeft,
+                    textOverflow = TextOverflow.Ellipsis,
                 }
             };
             Add(_title);
@@ -92,21 +92,22 @@ namespace GBG.AssetQuickAccess.Editor
             _title.text = _assetHandle.GetDisplayName();
             tooltip = _assetHandle.GetAssetPath();
 
-            Texture mainIconTex;
+            Texture assetIconTex;
             Texture categoryIconTex;
             switch (_assetHandle.Category)
             {
                 case AssetCategory.ProjectAsset:
-                    mainIconTex = GetObjectIcon(_assetHandle.Asset);
+                    assetIconTex = GetObjectIcon(_assetHandle.Asset);
                     categoryIconTex = null;
                     break;
+
                 case AssetCategory.SceneObject:
-                    mainIconTex = GetObjectIcon(_assetHandle.Asset);
+                    assetIconTex = GetObjectIcon(_assetHandle.Asset);
                     categoryIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_SceneAsset Icon" : "SceneAsset Icon");
                     break;
 
                 case AssetCategory.ExternalFile:
-                    mainIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import@2x" : "Import@2x");
+                    assetIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import@2x" : "Import@2x");
                     categoryIconTex = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import" : "Import");
                     break;
 
@@ -114,7 +115,7 @@ namespace GBG.AssetQuickAccess.Editor
                     throw new System.ArgumentOutOfRangeException(nameof(_assetHandle.Category), _assetHandle.Category, null);
             }
 
-            _AssetIcon.image = mainIconTex;
+            _assetIcon.image = assetIconTex;
             if (categoryIconTex)
             {
                 if (_categoryIcon == null)
@@ -125,13 +126,10 @@ namespace GBG.AssetQuickAccess.Editor
                 _categoryIcon.image = categoryIconTex;
                 _categoryIcon.style.display = DisplayStyle.Flex;
             }
-            else
+            else if (_categoryIcon != null)
             {
-                if (_categoryIcon != null)
-                {
-                    _categoryIcon.image = null;
-                    _categoryIcon.style.display = DisplayStyle.None;
-                }
+                _categoryIcon.image = null;
+                _categoryIcon.style.display = DisplayStyle.None;
             }
         }
 
@@ -140,7 +138,7 @@ namespace GBG.AssetQuickAccess.Editor
             _assetHandle = null;
             _title.text = null;
             tooltip = null;
-            _AssetIcon.image = null;
+            _assetIcon.image = null;
             if (_categoryIcon != null)
             {
                 _categoryIcon.image = null;
@@ -150,6 +148,11 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void CreateCategoryIcon()
         {
+            if (_categoryIcon != null)
+            {
+                return;
+            }
+
             _categoryIcon = new Image
             {
                 name = "CategoryIcon",
