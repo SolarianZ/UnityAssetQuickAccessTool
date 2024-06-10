@@ -265,13 +265,12 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnDragAndDrop(IList<UObject> objects, IList<string> paths)
         {
-            StringBuilder errorsBuilder = new StringBuilder();
+            StringBuilder errorsBuilder = null;
 
             // External files
             if (objects.Count == 0 && paths.Count > 0)
             {
-                // TODO Add External files
-                _isViewDirty |= LocalCache.AddExternalFiles(paths, errorsBuilder);
+                _isViewDirty |= LocalCache.AddExternalFiles(paths, ref errorsBuilder);
                 return;
             }
 
@@ -287,9 +286,9 @@ namespace GBG.AssetQuickAccess.Editor
                     UDebug.LogWarning($"[AssetQuickAccess] Dragged asset '{asset}' is not included in DragAndDrop.objectReferences.", asset);
                 }
             }
-            _isViewDirty |= LocalCache.AddObjects(objectHashSet, errorsBuilder);
+            _isViewDirty |= LocalCache.AddObjects(objectHashSet, ref errorsBuilder);
 
-            if (errorsBuilder.Length > 0)
+            if (errorsBuilder != null && errorsBuilder.Length > 0)
             {
                 ShowNotification(new GUIContent(errorsBuilder.ToString()));
             }

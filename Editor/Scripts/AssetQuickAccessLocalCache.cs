@@ -30,7 +30,7 @@ namespace GBG.AssetQuickAccess.Editor
         private AssetCategory _selectedCategory = AssetCategory.None;
 
 
-        public bool AddExternalFiles(IEnumerable<string> filePaths, StringBuilder errorsBuilder)
+        public bool AddExternalFiles(IEnumerable<string> filePaths, ref StringBuilder errorsBuilder)
         {
             errorsBuilder?.Clear();
 
@@ -43,8 +43,9 @@ namespace GBG.AssetQuickAccess.Editor
                 }
 
                 AssetHandle handle = AssetHandle.CreateFromExternalFile(path, out string error);
-                if (errorsBuilder != null && !string.IsNullOrEmpty(error))
+                if (!string.IsNullOrEmpty(error))
                 {
+                    errorsBuilder ??= new StringBuilder();
                     errorsBuilder.AppendLine(error);
                 }
 
@@ -65,7 +66,7 @@ namespace GBG.AssetQuickAccess.Editor
             return added;
         }
 
-        public bool AddObjects(IEnumerable<UObject> objects, StringBuilder errorsBuilder)
+        public bool AddObjects(IEnumerable<UObject> objects, ref StringBuilder errorsBuilder)
         {
             errorsBuilder?.Clear();
 
@@ -80,8 +81,9 @@ namespace GBG.AssetQuickAccess.Editor
                     }
 
                     AssetHandle handle = AssetHandle.CreateFromObject(obj, out string error);
-                    if (errorsBuilder != null && !string.IsNullOrEmpty(error))
+                    if (!string.IsNullOrEmpty(error))
                     {
+                        errorsBuilder ??= new StringBuilder();
                         errorsBuilder.AppendLine(error);
                     }
 
@@ -96,8 +98,9 @@ namespace GBG.AssetQuickAccess.Editor
                 else
                 {
                     AssetHandle handle = AssetHandle.CreateFromObject(obj, out string error);
-                    if (errorsBuilder != null && !string.IsNullOrEmpty(error))
+                    if (!string.IsNullOrEmpty(error))
                     {
+                        errorsBuilder ??= new StringBuilder();
                         errorsBuilder.AppendLine(error);
                     }
 

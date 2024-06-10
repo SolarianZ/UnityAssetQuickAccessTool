@@ -256,8 +256,11 @@ namespace GBG.AssetQuickAccess.Editor
                     {
                         _mouseAction = MouseAction.Drag;
                         DragAndDrop.PrepareStartDrag();
-                        DragAndDrop.objectReferences = new UObject[] { _assetHandle.Asset };
-                        DragAndDrop.paths = new string[] { AssetDatabase.GetAssetPath(_assetHandle.Asset) };
+                        if (_assetHandle.Asset)
+                        {
+                            DragAndDrop.objectReferences = new UObject[] { _assetHandle.Asset };
+                            DragAndDrop.paths = new string[] { AssetDatabase.GetAssetPath(_assetHandle.Asset) };
+                        }
                         DragAndDrop.StartDrag(null);
                     }
                     break;
