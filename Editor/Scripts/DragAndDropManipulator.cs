@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.UIElements;
+using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
     public class DragAndDropManipulator : PointerManipulator
     {
-        public event Action<IList<string>> OnDragAndDropAssets;
+        public event Action<IList<UObject>, IList<string>> OnDragAndDrop;
 
 
         public DragAndDropManipulator(VisualElement target)
@@ -36,7 +37,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnDragUpdate(DragUpdatedEvent _)
         {
-            if (DragAndDrop.paths.Length > 0)
+            if (DragAndDrop.paths.Length > 0 || DragAndDrop.objectReferences.Length > 0)
             {
                 DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
             }
@@ -44,8 +45,8 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnDragPerform(DragPerformEvent _)
         {
-            // Sometimes DragAndDrop.objectReferences will be empty, but I don't know the reason.
-            OnDragAndDropAssets?.Invoke(DragAndDrop.paths);
+            // Sometimes the dragged assets are not included in DragAndDrop.objectReferences, for unknown reasons.
+            OnDragAndDrop?.Invoke(DragAndDrop.objectReferences, DragAndDrop.paths);
         }
     }
 }

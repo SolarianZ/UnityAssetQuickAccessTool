@@ -1,5 +1,7 @@
-﻿using UnityEditor;
+﻿using System.IO;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.UIElements;
 using UObject = UnityEngine.Object;
 
@@ -8,11 +10,11 @@ namespace GBG.AssetQuickAccess.Editor
     internal class AssetItemView : IMGUIContainer
     {
         public static double DoubleClickInterval = 0.3f;
-        private static Texture _warningTexture;
 
         private AssetHandle _assetHandle;
-        private Image _icon;
-        private Label _title;
+        private Image _assetIcon;
+        private Image _categoryIcon;
+        private Label _label;
         private MouseAction _mouseAction = MouseAction.None;
         private double _lastClickTime;
 
@@ -38,8 +40,8 @@ namespace GBG.AssetQuickAccess.Editor
             style.marginTop = 0;
             style.marginBottom = 0;
             // padding
-            style.paddingLeft = 32; // to avoid overlap with icon
-            style.paddingRight = 0;
+            style.paddingLeft = 2;
+            style.paddingRight = 2;
             style.paddingTop = 0;
             style.paddingBottom = 0;
             // border width
@@ -53,62 +55,134 @@ namespace GBG.AssetQuickAccess.Editor
             style.borderBottomLeftRadius = 0;
             style.borderBottomRightRadius = 0;
 
-            _icon = new Image
+            _assetIcon = new Image
             {
+                name = "AssetIcon",
                 pickingMode = PickingMode.Ignore,
                 style =
                 {
-                    width = new StyleLength(24),
-                    height = new Length(100, LengthUnit.Percent),
-                    marginLeft = -28 // to avoid overlap with text
+                    flexShrink = 0,
+                    width = 24,
+                    height = 24,
                 }
             };
-            Add(_icon);
+            Add(_assetIcon);
 
-            _title = new Label
+            _label = new Label
             {
+                name = "AssetLabel",
                 pickingMode = PickingMode.Ignore,
                 style =
                 {
+                    flexGrow = 1,
+                    flexShrink = 1,
+                    paddingLeft = 2,
+                    paddingRight = 2,
                     overflow = Overflow.Hidden,
-                    unityTextAlign = new StyleEnum<TextAnchor>(TextAnchor.MiddleLeft),
-                    textOverflow = new StyleEnum<TextOverflow>(TextOverflow.Ellipsis),
+                    unityTextAlign = TextAnchor.MiddleLeft,
+                    textOverflow = TextOverflow.Ellipsis,
                 }
             };
-            Add(_title);
+            Add(_label);
         }
 
         public void Bind(AssetHandle target)
         {
             _assetHandle = target;
-            _title.text = _assetHandle.GetDisplayName();
+            _assetHandle.Update();
 
-            if (_assetHandle.Asset)
+            tooltip = _assetHandle.GetAssetPath();
+            _label.text = _assetHandle.GetDisplayName();
+
+            string categoryIconTooltip;
+            Texture assetIconTex;
+            Texture categoryIconTex;
+            switch (_assetHandle.Category)
             {
-                tooltip = AssetDatabase.GetAssetPath(_assetHandle.Asset);
+                case AssetCategory.ProjectAsset:
+                    assetIconTex = GetObjectIcon(_assetHandle.Asset, null);
+                    categoryIconTex = null;
+                    categoryIconTooltip = null;
+                    break;
+
+                case AssetCategory.SceneObject:
+                    assetIconTex = GetObjectIcon(_assetHandle.Asset, _assetHandle.Scene);
+                    categoryIconTex = GetSceneObjectTexture(true);
+                    categoryIconTooltip = "Scene Object";
+                    break;
+
+                case AssetCategory.ExternalFile:
+                    string path = _assetHandle.GetAssetPath();
+                    assetIconTex = File.Exists(path) || Directory.Exists(path)
+                        ? GetExternalFileTexture(false)
+                        : GetWarningTexture();
+                    categoryIconTex = GetExternalFileTexture(true);
+                    categoryIconTooltip = "External File of Folder";
+                    break;
+
+                default:
+                    throw new System.ArgumentOutOfRangeException(nameof(_assetHandle.Category), _assetHandle.Category, null);
             }
 
-            Texture iconTex = AssetPreview.GetMiniThumbnail(_assetHandle.Asset);
-            if (!iconTex)
+            _assetIcon.image = assetIconTex;
+            if (categoryIconTex)
             {
-                if (!_warningTexture)
+                if (_categoryIcon == null)
                 {
-                    _warningTexture = EditorGUIUtility.IconContent("Warning@2x").image;
+                    CreateCategoryIcon();
                 }
 
-                iconTex = _warningTexture;
+                _categoryIcon.tooltip = categoryIconTooltip;
+                _categoryIcon.image = categoryIconTex;
+                _categoryIcon.style.display = DisplayStyle.Flex;
             }
-            _icon.image = iconTex;
+            else if (_categoryIcon != null)
+            {
+                _categoryIcon.tooltip = categoryIconTooltip;
+                _categoryIcon.image = null;
+                _categoryIcon.style.display = DisplayStyle.None;
+            }
         }
 
         public void Unbind()
         {
             _assetHandle = null;
-            _title.text = null;
+
             tooltip = null;
-            _icon.image = null;
+            _assetIcon.image = null;
+            _label.text = null;
+            if (_categoryIcon != null)
+            {
+                _categoryIcon.tooltip = null;
+                _categoryIcon.image = null;
+                _categoryIcon.style.display = DisplayStyle.None;
+            }
         }
 
+        private void CreateCategoryIcon()
+        {
+            if (_categoryIcon != null)
+            {
+                return;
+            }
+
+            _categoryIcon = new Image
+            {
+                name = "CategoryIcon",
+                //pickingMode = PickingMode.Ignore, // Allow picking to show tooltip
+                style =
+                {
+                    flexShrink = 0,
+                    alignSelf = Align.Center,
+                    width = 16,
+                    height = 16,
+                }
+            };
+            // To avoid conflict with the drag action of the ListView items.
+            _categoryIcon.RegisterCallback<PointerDownEvent>(evt => evt.StopImmediatePropagation());
+
+            Add(_categoryIcon);
+        }
 
         private void OnGUI()
         {
@@ -183,8 +257,11 @@ namespace GBG.AssetQuickAccess.Editor
                     {
                         _mouseAction = MouseAction.Drag;
                         DragAndDrop.PrepareStartDrag();
-                        DragAndDrop.objectReferences = new UObject[] { _assetHandle.Asset };
-                        DragAndDrop.paths = new string[] { AssetDatabase.GetAssetPath(_assetHandle.Asset) };
+                        if (_assetHandle.Asset)
+                        {
+                            DragAndDrop.objectReferences = new UObject[] { _assetHandle.Asset };
+                            DragAndDrop.paths = new string[] { AssetDatabase.GetAssetPath(_assetHandle.Asset) };
+                        }
                         DragAndDrop.StartDrag(null);
                     }
                     break;
@@ -203,42 +280,191 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnClick()
         {
-            if (_assetHandle.Asset)
+            if (_assetHandle.Category == AssetCategory.ExternalFile)
             {
-                EditorGUIUtility.PingObject(_assetHandle.Asset);
+                Bind(_assetHandle);
             }
+
+            _assetHandle.PingAsset();
         }
 
         private void OnDoubleClick()
         {
-            if (_assetHandle.Asset)
+            if (_assetHandle.Category == AssetCategory.ExternalFile)
             {
-                AssetDatabase.OpenAsset(_assetHandle.Asset);
+                Bind(_assetHandle);
             }
+
+            _assetHandle.OpenAsset();
         }
 
         private void OnContextClick(Vector2 mousePosition)
         {
+            switch (_assetHandle.Category)
+            {
+                case AssetCategory.ProjectAsset:
+                    ShowProjectAssetContextMenu(mousePosition);
+                    break;
+
+                case AssetCategory.SceneObject:
+                    ShowSceneObjectContextMenu(mousePosition);
+                    break;
+
+                case AssetCategory.ExternalFile:
+                    Bind(_assetHandle);
+                    ShowExternalFileContextMenu(mousePosition);
+                    break;
+
+                default:
+                    throw new System.ArgumentOutOfRangeException(nameof(_assetHandle.Category), _assetHandle.Category, null);
+            }
+        }
+
+        private void ShowProjectAssetContextMenu(Vector2 mousePosition)
+        {
+            Assert.IsTrue(_assetHandle.Category == AssetCategory.ProjectAsset);
+
             GenericDropdownMenu menu = new GenericDropdownMenu();
             if (_assetHandle.Asset)
             {
-                menu.AddItem("Open", false, () => AssetDatabase.OpenAsset(_assetHandle.Asset));
-                menu.AddItem("Copy Path", false, () => GUIUtility.systemCopyBuffer = AssetDatabase.GUIDToAssetPath(_assetHandle.Guid));
-                menu.AddItem("Copy Guid", false, () => GUIUtility.systemCopyBuffer = _assetHandle.Guid);
-                menu.AddItem("Copy Type", false, () => GUIUtility.systemCopyBuffer = _assetHandle.TypeFullName);
-                menu.AddItem("Show in Folder", false, () => EditorUtility.RevealInFinder(AssetDatabase.GUIDToAssetPath(_assetHandle.Guid)));
+                menu.AddItem("Open", false, _assetHandle.OpenAsset);
+                menu.AddItem("Copy Path", false, _assetHandle.CopyPathToSystemBuffer);
+                menu.AddItem("Copy Guid", false, _assetHandle.CopyGuidToSystemBuffer);
+                menu.AddItem("Copy Type", false, _assetHandle.CopyTypeFullNameToSystemBuffer);
+                menu.AddItem("Show in Folder", false, _assetHandle.ShowInFolder);
             }
             else
             {
-                menu.AddDisabledItem("Open", false);
-                menu.AddDisabledItem("Copy Path", false);
-                menu.AddItem("Copy Guid", false, () => GUIUtility.systemCopyBuffer = _assetHandle.Guid);
-                menu.AddItem("Copy Type", false, () => GUIUtility.systemCopyBuffer = _assetHandle.TypeFullName);
-                menu.AddDisabledItem("Show in Folder", false);
+                menu.AddItem("Copy Guid", false, _assetHandle.CopyGuidToSystemBuffer);
             }
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
             menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
         }
+
+        private void ShowSceneObjectContextMenu(Vector2 mousePosition)
+        {
+            Assert.IsTrue(_assetHandle.Category == AssetCategory.SceneObject);
+
+            GenericDropdownMenu menu = new GenericDropdownMenu();
+            if (_assetHandle.Asset)
+            {
+                menu.AddItem("Open", false, _assetHandle.OpenAsset);
+                menu.AddItem("Copy Hierarchy Path", false, _assetHandle.CopyPathToSystemBuffer);
+                menu.AddItem("Copy Type", false, _assetHandle.CopyTypeFullNameToSystemBuffer);
+            }
+            else if (_assetHandle.Scene)
+            {
+                menu.AddItem("Open in Scene", false, _assetHandle.OpenAsset);
+            }
+            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
+            menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
+        }
+
+        private void ShowExternalFileContextMenu(Vector2 mousePosition)
+        {
+            Assert.IsTrue(_assetHandle.Category == AssetCategory.ExternalFile);
+
+            GenericDropdownMenu menu = new GenericDropdownMenu();
+            string path = _assetHandle.GetAssetPath();
+            if (File.Exists(path) || Directory.Exists(path))
+            {
+                menu.AddItem("Open", false, _assetHandle.OpenAsset);
+                menu.AddItem("Copy Path", false, _assetHandle.CopyPathToSystemBuffer);
+                menu.AddItem("Show in Folder", false, _assetHandle.ShowInFolder);
+            }
+            else
+            {
+                menu.AddItem("Copy Path", false, _assetHandle.CopyPathToSystemBuffer);
+            }
+            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
+            menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
+        }
+
+
+        #region Static Textures
+
+        private static Texture _sceneObjectTextureCache;
+        private static Texture _sceneObjectTextureSmallCache;
+        private static Texture _externalFileTextureCache;
+        private static Texture _externalFileTextureSmallCache;
+        private static Texture _warningTextureCache;
+
+        private static Texture GetObjectIcon(UObject obj, SceneAsset scene)
+        {
+            Texture iconTex;
+            if (obj)
+            {
+                iconTex = AssetPreview.GetMiniThumbnail(obj);
+            }
+            else if (scene)
+            {
+                iconTex = GetSceneObjectTexture(false);
+            }
+            else
+            {
+                iconTex = GetWarningTexture();
+            }
+
+            return iconTex;
+        }
+
+        private static Texture GetSceneObjectTexture(bool small)
+        {
+            if (small)
+            {
+                if (!_sceneObjectTextureSmallCache)
+                {
+                    _sceneObjectTextureSmallCache = (Texture)EditorGUIUtility.Load(
+                        EditorGUIUtility.isProSkin
+                        ? "d_UnityEditor.SceneHierarchyWindow"
+                        : "UnityEditor.SceneHierarchyWindow");
+                }
+
+                return _sceneObjectTextureSmallCache;
+            }
+
+            if (!_sceneObjectTextureCache)
+            {
+                _sceneObjectTextureCache = (Texture)EditorGUIUtility.Load(
+                    EditorGUIUtility.isProSkin
+                    ? "d_UnityEditor.SceneHierarchyWindow@2x"
+                    : "UnityEditor.SceneHierarchyWindow@2x");
+            }
+
+            return _sceneObjectTextureCache;
+        }
+
+        private static Texture GetExternalFileTexture(bool small)
+        {
+            if (small)
+            {
+                if (!_externalFileTextureSmallCache)
+                {
+                    _externalFileTextureSmallCache = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import" : "Import");
+                }
+
+                return _externalFileTextureSmallCache;
+            }
+
+            if (!_externalFileTextureCache)
+            {
+                _externalFileTextureCache = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import@2x" : "Import@2x");
+            }
+
+            return _externalFileTextureCache;
+        }
+
+        private static Texture GetWarningTexture()
+        {
+            if (!_warningTextureCache)
+            {
+                _warningTextureCache = (Texture)EditorGUIUtility.Load("Warning@2x");
+            }
+
+            return _warningTextureCache;
+        }
+
+        #endregion
 
 
         enum MouseAction : byte
