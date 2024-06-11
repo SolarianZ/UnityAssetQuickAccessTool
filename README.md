@@ -2,18 +2,22 @@
 
 [中文](./README_CN.md)
 
-Pin frequently used objects to a separate editor window. An enhanced version of Unity's Favorites feature.
+Pin frequently used Unity objects and external files/folders to a separate editor window. An enhanced version of the Unity's Favorites feature.
 
 ![Asset Quick Access Window](./Documents~/imgs/img_sample_asset_quick_access_window.png)
 
 ## Features
 
-- Record commonly used assets.
-- Quickly locate/open commonly used assets.
-- Copy asset path.
-- Copy asset guid.
-- Copy asset type.
-- Show asset in folder.
+- Record frequently used resources, including:
+  - Unity assets
+  - Scene objects and components
+  - External files and folders
+- Filter recorded items by category.
+- Quickly locate / open recorded items.
+- Copy the path of recorded items.
+- Copy the guid of recorded items.
+- Copy the type of recorded items.
+- Show recorded items in the folder.
 
 ## Supported Unity Version
 
@@ -29,11 +33,17 @@ Install this package via [OpenUPM](https://openupm.com/packages/com.greenbamboog
 
 ## How to use
 
-Open the Asset Quick Access window from the "Tools/Bamboo/Asset Quick Access" menu.
+Open the Asset Quick Access window from the menu "Tools/Bamboo/Asset Quick Access".
 
-- **Drag and drop** assets into the window to record them.
-- **Left-click** on a recorded asset to locate (ping) it in the Project window.
-- **Double-click** on a recorded asset to open it.
-- **Right-click** on a recorded asset to display the asset operation menu.
+- **Drag and drop** items into the window to record them.
+- **Left-click** on a recorded item to locate (ping) it in the Editor.
+  - If the item is an object or component in a Scene and the Scene is not open, it will locate the containing SceneAsset instead.
+  - If the item is an external file or folder, no action will be taken.
+- **Double-click** on a recorded item to open it.
+  - If the item is an object or component in a Scene and the Scene is not open, it will open the containing SceneAsset.
+- **Right-click** on a recorded item to display the operation menu.
 - ~~Enter the asset's guid or path in the **Find Asset** input field to find it~~ (Use Unity's builtin search(`Ctrl K`) instead).
-- Use the "Clear All Items" option in the window's context menu to clear all recorded assets.
+- Use the category buttons on the window's toolbar to filter items.
+- Use the **Add External File** option in the window toolbar's dropdown menu to add an external file.
+- Use the **Add External Folder** option in the window toolbar's dropdown menu to add an external folder.
+- Use the **Remove All Items** option in the window toolbar's dropdown menu to clear all recorded items.
