@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -29,12 +30,20 @@ namespace GBG.AssetQuickAccess.Editor
             if (paths != null)
             {
                 externalPathHashSet = new HashSet<string>(paths?.Count ?? 0);
-                foreach (string path in paths)
+                foreach (string rawPath in paths)
                 {
-                    UObject asset = AssetDatabase.LoadAssetAtPath<UObject>(path);
-                    if (asset)
+                    string path = rawPath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    if (path.StartsWith(Application.dataPath))
                     {
-                        objectHashSet.Add(asset);
+                        UObject asset = AssetDatabase.LoadAssetAtPath<UObject>(path);
+                        if (asset)
+                        {
+                            objectHashSet.Add(asset);
+                        }
+                        else
+                        {
+                            externalPathHashSet.Add(path);
+                        }
                     }
                     else
                     {
@@ -47,7 +56,7 @@ namespace GBG.AssetQuickAccess.Editor
             bool added = AssetQuickAccessLocalCache.instance.AddObjects(objectHashSet, ref errorsBuilder, false);
             if (externalPathHashSet != null)
             {
-                added |= AssetQuickAccessLocalCache.instance.AddExternalFiles(paths, ref errorsBuilder, false);
+                added |= AssetQuickAccessLocalCache.instance.AddExternalPaths(paths, ref errorsBuilder, false);
             }
 
             if (_instance)
@@ -373,7 +382,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             StringBuilder errorsBuilder = null;
-            if (LocalCache.AddExternalFiles(new string[] { filePath }, ref errorsBuilder, false))
+            if (LocalCache.AddExternalPaths(new string[] { filePath }, ref errorsBuilder, false))
             {
                 SetViewDirty();
             }
@@ -393,7 +402,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             StringBuilder errorsBuilder = null;
-            if (LocalCache.AddExternalFiles(new string[] { folderPath }, ref errorsBuilder, false))
+            if (LocalCache.AddExternalPaths(new string[] { folderPath }, ref errorsBuilder, false))
             {
                 SetViewDirty();
             }

@@ -30,7 +30,7 @@ namespace GBG.AssetQuickAccess.Editor
         private AssetCategory _selectedCategory = AssetCategory.None;
 
 
-        public bool AddExternalFiles(IEnumerable<string> filePaths, ref StringBuilder errorsBuilder, bool clearErrorsBuilder)
+        public bool AddExternalPaths(IEnumerable<string> paths, ref StringBuilder errorsBuilder, bool clearErrorsBuilder)
         {
             if (clearErrorsBuilder)
             {
@@ -38,12 +38,12 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             bool added = false;
-            foreach (string path in filePaths)
+            foreach (string path in paths)
             {
                 if (_assetHandles.Any(h => h.GetAssetPath() == path))
                 {
                     errorsBuilder ??= new StringBuilder();
-                    errorsBuilder.AppendLine("File already exists.");
+                    errorsBuilder.AppendLine("File or folder already exists.");
                     continue;
                 }
 
