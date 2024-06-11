@@ -52,7 +52,10 @@ namespace GBG.AssetQuickAccess.Editor
 
             if (_instance)
             {
-                _instance._isViewDirty |= added;
+                if (added)
+                {
+                    _instance.SetViewDirty();
+                }
 
                 if (errorsBuilder != null && errorsBuilder.Length > 0)
                 {
@@ -78,6 +81,7 @@ namespace GBG.AssetQuickAccess.Editor
         private static AssetQuickAccessWindow _instance;
         private bool _isViewDirty;
         private bool _setViewDirtyOnFocus;
+        private List<AssetHandle> _filteredAssetHandles = new List<AssetHandle>();
         private AssetQuickAccessLocalCache LocalCache => AssetQuickAccessLocalCache.instance;
 
 
@@ -90,8 +94,8 @@ namespace GBG.AssetQuickAccess.Editor
             titleContent.text = "Asset Quick Access";
             minSize = new Vector2(330, 180);
 
-            AssemblyReloadEvents.afterAssemblyReload -= RefreshDataDelay;
-            AssemblyReloadEvents.afterAssemblyReload += RefreshDataDelay;
+            AssemblyReloadEvents.afterAssemblyReload -= SetViewDirtyDelay;
+            AssemblyReloadEvents.afterAssemblyReload += SetViewDirtyDelay;
             EditorApplication.hierarchyChanged -= SetViewDirty;
             EditorApplication.hierarchyChanged += SetViewDirty;
 
@@ -106,7 +110,7 @@ namespace GBG.AssetQuickAccess.Editor
         {
             _instance = null;
 
-            AssemblyReloadEvents.afterAssemblyReload -= RefreshDataDelay;
+            AssemblyReloadEvents.afterAssemblyReload -= SetViewDirtyDelay;
             EditorApplication.hierarchyChanged -= SetViewDirty;
 
             /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
@@ -220,12 +224,14 @@ namespace GBG.AssetQuickAccess.Editor
             _assetListView = new ListView
             {
                 fixedItemHeight = 26,
-                reorderable = LocalCache.SelectedCategory == AssetCategory.None,
+                //reorderable = LocalCache.SelectedCategory == AssetCategory.None,
                 reorderMode = ListViewReorderMode.Animated,
                 makeItem = CreateNewAssetListItem,
                 bindItem = BindAssetListItem,
                 unbindItem = UnbindAssetListItem,
-                itemsSource = LocalCache.AssetHandles,
+                //itemsSource = LocalCache.SelectedCategory == AssetCategory.None
+                //    ? LocalCache.AssetHandles
+                //    : _filteredAssetHandles,
                 selectionType = SelectionType.None,
                 style =
                 {
@@ -250,13 +256,26 @@ namespace GBG.AssetQuickAccess.Editor
             };
             rootVisualElement.Add(tipsText);
 
-            _isViewDirty = true;
+            SetViewDirty();
         }
 
         private void Update()
         {
             if (_isViewDirty)
             {
+                UpdateFilteredAssetHandles();
+
+                if (LocalCache.SelectedCategory == AssetCategory.None)
+                {
+                    _assetListView.itemsSource = LocalCache.AssetHandles;
+                    _assetListView.reorderable = true;
+                }
+                else
+                {
+                    _assetListView.itemsSource = _filteredAssetHandles;
+                    _assetListView.reorderable = false;
+                }
+
                 _assetListView.RefreshItems();
                 _isViewDirty = false;
             }
@@ -294,18 +313,18 @@ namespace GBG.AssetQuickAccess.Editor
             }
         }
 
-        private void RefreshDataDelay()
+        private void SetViewDirtyDelay()
         {
             // Fix #1
-            EditorApplication.delayCall += () =>
-            {
-                _isViewDirty = true;
-            };
+            EditorApplication.delayCall += SetViewDirty;
         }
 
         private void RemoveAsset(AssetHandle assetHandle)
         {
-            _isViewDirty |= LocalCache.RemoveAsset(assetHandle);
+            if (LocalCache.RemoveAsset(assetHandle))
+            {
+                SetViewDirty();
+            }
         }
 
         private void RemoveAllItems()
@@ -315,16 +334,31 @@ namespace GBG.AssetQuickAccess.Editor
                 "Remove", "Cancel"))
             {
                 LocalCache.RemoveAllAssets();
-                _isViewDirty = true;
+                SetViewDirty();
             }
         }
 
         private void SelectCategory(AssetCategory selectedCategory)
         {
             LocalCache.SelectedCategory = selectedCategory;
-            _assetListView.reorderable = selectedCategory == AssetCategory.None;
+            SetViewDirty();
+        }
 
-            // TODO: Filter asset items
+        private void UpdateFilteredAssetHandles()
+        {
+            _filteredAssetHandles.Clear();
+            if (LocalCache.SelectedCategory == AssetCategory.None)
+            {
+                return;
+            }
+
+            foreach (AssetHandle assetHandle in LocalCache.AssetHandles)
+            {
+                if (assetHandle.Category == LocalCache.SelectedCategory)
+                {
+                    _filteredAssetHandles.Add(assetHandle);
+                }
+            }
         }
 
 
@@ -339,7 +373,11 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             StringBuilder errorsBuilder = null;
-            _isViewDirty |= LocalCache.AddExternalFiles(new string[] { filePath }, ref errorsBuilder, false);
+            if (LocalCache.AddExternalFiles(new string[] { filePath }, ref errorsBuilder, false))
+            {
+                SetViewDirty();
+            }
+
             if (errorsBuilder != null && errorsBuilder.Length > 0)
             {
                 ShowNotification(new GUIContent(errorsBuilder.ToString()));
@@ -355,7 +393,11 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             StringBuilder errorsBuilder = null;
-            _isViewDirty |= LocalCache.AddExternalFiles(new string[] { folderPath }, ref errorsBuilder, false);
+            if (LocalCache.AddExternalFiles(new string[] { folderPath }, ref errorsBuilder, false))
+            {
+                SetViewDirty();
+            }
+
             if (errorsBuilder != null && errorsBuilder.Length > 0)
             {
                 ShowNotification(new GUIContent(errorsBuilder.ToString()));
@@ -381,7 +423,7 @@ namespace GBG.AssetQuickAccess.Editor
         private void BindAssetListItem(VisualElement element, int index)
         {
             AssetItemView view = (AssetItemView)element;
-            AssetHandle assetHandle = (AssetHandle)LocalCache.AssetHandles[index];
+            AssetHandle assetHandle = (AssetHandle)_assetListView.itemsSource[index];
             view.Bind(assetHandle);
         }
 
