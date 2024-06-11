@@ -35,7 +35,7 @@ Install this package via [OpenUPM](https://openupm.com/packages/com.greenbamboog
 
 Open the Asset Quick Access window from the menu "Tools/Bamboo/Asset Quick Access".
 
-- **Drag and drop** items into the window to record them.
+- **Drag and drop** items into the window to record them, or right-click on a Unity object and select the **Bamboo/Add to Asset Quick Access** option to record the object.
 - **Left-click** on a recorded item to locate (ping) it in the Editor.
   - If the item is an object or component in a Scene and the Scene is not open, it will locate the containing SceneAsset instead.
   - If the item is an external file or folder, no action will be taken.

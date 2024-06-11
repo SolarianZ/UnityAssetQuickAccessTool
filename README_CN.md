@@ -35,7 +35,7 @@ Unity 2021.2及更低版本的Unity请使用 [1.2.1](https://github.com/Solarian
 
 从菜单 “Tools/Bamboo/Asset Quick Access 打开资产快速访问工具窗口。
 
-- 将项目 **拖放** 到窗口中来记录该项目。
+- 将项目 **拖放** 到窗口中来记录该项目，或右键点击Unity对象，选择 **Bamboo/Add to Asset Quick Access** 选项类记录该对象。
 - 使用 **鼠标左键单击** 已记录项目，可以在Editor中定位（Ping）此项目。
   - 若项目是Scene中的对象或组件，且Scene未打开，则改为定位其所在的SceneAsset；
   - 若项目是外部文件或文件夹，则什么都不做。
