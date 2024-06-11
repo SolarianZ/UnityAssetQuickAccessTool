@@ -30,9 +30,12 @@ namespace GBG.AssetQuickAccess.Editor
         private AssetCategory _selectedCategory = AssetCategory.None;
 
 
-        public bool AddExternalFiles(IEnumerable<string> filePaths, ref StringBuilder errorsBuilder)
+        public bool AddExternalFiles(IEnumerable<string> filePaths, ref StringBuilder errorsBuilder, bool clearErrorsBuilder)
         {
-            errorsBuilder?.Clear();
+            if (clearErrorsBuilder)
+            {
+                errorsBuilder?.Clear();
+            }
 
             bool added = false;
             foreach (string path in filePaths)
@@ -68,9 +71,12 @@ namespace GBG.AssetQuickAccess.Editor
             return added;
         }
 
-        public bool AddObjects(IEnumerable<UObject> objects, ref StringBuilder errorsBuilder)
+        public bool AddObjects(IEnumerable<UObject> objects, ref StringBuilder errorsBuilder, bool clearErrorsBuilder)
         {
-            errorsBuilder?.Clear();
+            if (clearErrorsBuilder)
+            {
+                errorsBuilder?.Clear();
+            }
 
             bool added = false;
             foreach (UObject obj in objects)
@@ -149,12 +155,12 @@ namespace GBG.AssetQuickAccess.Editor
             return false;
         }
 
-        public void ClearAllAssets()
+        public void RemoveAllAssets()
         {
             _assetHandles.Clear();
             ForceSave();
 
-            Debug.Log("All asset quick access items cleared.");
+            Debug.Log("All asset quick access items removed.");
         }
 
         public void ForceSave()

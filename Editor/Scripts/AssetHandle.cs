@@ -91,18 +91,18 @@ namespace GBG.AssetQuickAccess.Editor
             return sceneObjectHandle;
         }
 
-        public static AssetHandle CreateFromExternalFile(string filePath, out string error)
+        public static AssetHandle CreateFromExternalFile(string externalPath, out string error)
         {
-            if (!File.Exists(filePath))
+            if (!File.Exists(externalPath) && !Directory.Exists(externalPath))
             {
-                error = $"File does not exist: {filePath}.";
+                error = $"File or folder does not exist:\n{externalPath}.";
                 return null;
             }
 
             AssetHandle externalFileHandle = new AssetHandle
             {
                 _category = AssetCategory.ExternalFile,
-                _guid = filePath,
+                _guid = externalPath,
             };
 
             error = null;
@@ -203,7 +203,7 @@ namespace GBG.AssetQuickAccess.Editor
                     break;
 
                 case AssetCategory.ExternalFile:
-                    if (File.Exists(_guid))
+                    if (File.Exists(_guid) || Directory.Exists(_guid))
                     {
                         EditorUtility.OpenWithDefaultApp(_guid);
                     }
@@ -341,16 +341,20 @@ namespace GBG.AssetQuickAccess.Editor
                     }
 
                 case AssetCategory.ExternalFile:
-                    string filePath = GetAssetPath();
+                    string path = GetAssetPath();
                     if (File.Exists(_guid))
                     {
-                        string fileName = Path.GetFileName(filePath);
-                        string folderName = Path.GetDirectoryName(filePath);
+                        string fileName = Path.GetFileName(path);
+                        string folderName = Path.GetDirectoryName(path);
                         return $"{fileName}    <i>({folderName})</i>";
+                    }
+                    else if (Directory.Exists(_guid))
+                    {
+                        return path;
                     }
                     else
                     {
-                        return $"Missing    (Path: {filePath})<i>";
+                        return $"Missing    (Path: {path})<i>";
                     }
 
                 default:

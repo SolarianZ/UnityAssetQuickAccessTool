@@ -112,11 +112,12 @@ namespace GBG.AssetQuickAccess.Editor
                     break;
 
                 case AssetCategory.ExternalFile:
-                    assetIconTex = File.Exists(_assetHandle.GetAssetPath())
+                    string path = _assetHandle.GetAssetPath();
+                    assetIconTex = File.Exists(path) || Directory.Exists(path)
                         ? GetExternalFileTexture(false)
                         : GetWarningTexture();
                     categoryIconTex = GetExternalFileTexture(true);
-                    categoryIconTooltip = "External File";
+                    categoryIconTooltip = "External File of Folder";
                     break;
 
                 default:
@@ -353,7 +354,8 @@ namespace GBG.AssetQuickAccess.Editor
             Assert.IsTrue(_assetHandle.Category == AssetCategory.ExternalFile);
 
             GenericDropdownMenu menu = new GenericDropdownMenu();
-            if (File.Exists(_assetHandle.GetAssetPath()))
+            string path = _assetHandle.GetAssetPath();
+            if (File.Exists(path) || Directory.Exists(path))
             {
                 menu.AddItem("Open", false, _assetHandle.OpenAsset);
                 menu.AddItem("Copy Path", false, _assetHandle.CopyPathToSystemBuffer);

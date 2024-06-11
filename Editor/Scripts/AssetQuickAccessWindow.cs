@@ -4,7 +4,6 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UDebug = UnityEngine.Debug;
 using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
@@ -18,7 +17,65 @@ namespace GBG.AssetQuickAccess.Editor
             GetWindow<AssetQuickAccessWindow>();
         }
 
+        public static void AddItems(IList<UObject> objects, IList<string> paths)
+        {
+            HashSet<UObject> objectHashSet = new HashSet<UObject>(objects?.Count ?? 0);
+            if (objects != null)
+            {
+                objectHashSet = new HashSet<UObject>(objects);
+            }
 
+            HashSet<string> externalPathHashSet = null;
+            if (paths != null)
+            {
+                externalPathHashSet = new HashSet<string>(paths?.Count ?? 0);
+                foreach (string path in paths)
+                {
+                    UObject asset = AssetDatabase.LoadAssetAtPath<UObject>(path);
+                    if (asset)
+                    {
+                        objectHashSet.Add(asset);
+                    }
+                    else
+                    {
+                        externalPathHashSet.Add(path);
+                    }
+                }
+            }
+
+            StringBuilder errorsBuilder = null;
+            bool added = AssetQuickAccessLocalCache.instance.AddObjects(objectHashSet, ref errorsBuilder, false);
+            if (externalPathHashSet != null)
+            {
+                added |= AssetQuickAccessLocalCache.instance.AddExternalFiles(paths, ref errorsBuilder, false);
+            }
+
+            if (_instance)
+            {
+                _instance._isViewDirty |= added;
+
+                if (errorsBuilder != null && errorsBuilder.Length > 0)
+                {
+                    _instance.ShowNotification(new GUIContent(errorsBuilder.ToString()));
+                }
+            }
+        }
+
+#if !GBG_AQA_CONTEXT_MENU_OFF
+        [MenuItem("Assets/Bamboo/Add to Asset Quick Access", priority = 20)]
+        [MenuItem("GameObject/Bamboo/Add to Asset Quick Access", priority = 0)]
+#endif
+        public static void AddSelectedObjects()
+        {
+            AddItems(Selection.objects, null);
+        }
+
+        [MenuItem("Assets/Bamboo/Add to Asset Quick Access", validate = true)]
+        [MenuItem("GameObject/Bamboo/Add to Asset Quick Access", validate = true)]
+        private static bool AddSelectedObjectsValidate() => Selection.objects.Length > 0;
+
+
+        private static AssetQuickAccessWindow _instance;
         private bool _isViewDirty;
         private bool _setViewDirtyOnFocus;
         private AssetQuickAccessLocalCache LocalCache => AssetQuickAccessLocalCache.instance;
@@ -26,6 +83,8 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnEnable()
         {
+            _instance = this;
+
             titleContent = EditorGUIUtility.IconContent(
                 EditorGUIUtility.isProSkin ? "d_Favorite" : "Favorite");
             titleContent.text = "Asset Quick Access";
@@ -45,6 +104,8 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnDisable()
         {
+            _instance = null;
+
             AssemblyReloadEvents.afterAssemblyReload -= RefreshDataDelay;
             EditorApplication.hierarchyChanged -= SetViewDirty;
 
@@ -79,64 +140,87 @@ namespace GBG.AssetQuickAccess.Editor
             #region Toolbar
 
             // Toolbar
-            Toolbar toolbar = new Toolbar();
+            Toolbar toolbar = new Toolbar
+            {
+                style = { justifyContent = Justify.SpaceBetween }
+            };
             rootVisualElement.Add(toolbar);
 
+            // Radio Button Group
             const float CategoryButtonMarginRight = 8;
-            RadioButtonGroup radioButtonGroup = new RadioButtonGroup();
+            RadioButtonGroup radioButtonGroup = new RadioButtonGroup
+            {
+                style = { flexShrink = 1 },
+            };
 #if UNITY_2022_2_OR_NEWER
             radioButtonGroup.Q(className: RadioButtonGroup.containerUssClassName).style.flexDirection = FlexDirection.Row;
 #endif
-            radioButtonGroup.RegisterValueChangedCallback(SelectCategory);
+            //radioButtonGroup.RegisterValueChangedCallback(SelectCategory); // Not work in Unity 2021
             toolbar.Add(radioButtonGroup);
 
             // All Category
-            RadioButton _allCategoryButton = new RadioButton()
+            RadioButton allCategoryButton = new RadioButton()
             {
                 text = "All",
                 value = LocalCache.SelectedCategory == AssetCategory.None,
                 style = { marginRight = CategoryButtonMarginRight }
             };
-            radioButtonGroup.Add(_allCategoryButton);
+            allCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.None); });
+            radioButtonGroup.Add(allCategoryButton);
 
-            // Assets Category
-            RadioButton _assetsCategoryButton = new RadioButton()
+            // Project Assets Category
+            RadioButton assetsCategoryButton = new RadioButton()
             {
                 text = "Assets",
                 value = LocalCache.SelectedCategory == AssetCategory.ProjectAsset,
                 style = { marginRight = CategoryButtonMarginRight }
             };
-            radioButtonGroup.Add(_assetsCategoryButton);
+            assetsCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.ProjectAsset); });
+            radioButtonGroup.Add(assetsCategoryButton);
 
             // Scene Objects Category
-            RadioButton _sceneObjectsCategoryButton = new RadioButton()
+            RadioButton sceneObjectsCategoryButton = new RadioButton()
             {
                 text = "Scene Objects",
                 value = LocalCache.SelectedCategory == AssetCategory.SceneObject,
                 style = { marginRight = CategoryButtonMarginRight }
             };
-            radioButtonGroup.Add(_sceneObjectsCategoryButton);
+            sceneObjectsCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.SceneObject); });
+            radioButtonGroup.Add(sceneObjectsCategoryButton);
 
             // External Files Category
-            RadioButton _externalFilesCategoryButton = new RadioButton()
+            RadioButton externalFilesCategoryButton = new RadioButton()
             {
                 text = "External Files",
                 value = LocalCache.SelectedCategory == AssetCategory.ExternalFile,
                 style = { marginRight = CategoryButtonMarginRight }
             };
-            radioButtonGroup.Add(_externalFilesCategoryButton);
+            externalFilesCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.ExternalFile); });
+            radioButtonGroup.Add(externalFilesCategoryButton);
+
+            // Toolbar Menu
+            ToolbarMenu toolbarMenu = new ToolbarMenu
+            {
+                tooltip = "Add External File or Folder",
+                style = { flexShrink = 0 }
+            };
+            toolbarMenu.menu.AppendAction("Add External File", _ => AddExternalFile());
+            toolbarMenu.menu.AppendAction("Add External Folder", _ => AddExternalFolder());
+            toolbarMenu.menu.AppendSeparator("");
+            toolbarMenu.menu.AppendAction("Remove all Items", _ => RemoveAllItems());
+            toolbar.Add(toolbarMenu);
 
             #endregion
 
 
             DragAndDropManipulator dragDropManipulator = new DragAndDropManipulator(rootVisualElement);
-            dragDropManipulator.OnDragAndDrop += OnDragAndDrop;
+            dragDropManipulator.OnDragAndDrop += AddItems;
 
             // Asset list view
             _assetListView = new ListView
             {
                 fixedItemHeight = 26,
-                reorderable = true,
+                reorderable = LocalCache.SelectedCategory == AssetCategory.None,
                 reorderMode = ListViewReorderMode.Animated,
                 makeItem = CreateNewAssetListItem,
                 bindItem = BindAssetListItem,
@@ -219,15 +303,64 @@ namespace GBG.AssetQuickAccess.Editor
             };
         }
 
-        private void SelectCategory(ChangeEvent<int> evt)
+        private void RemoveAsset(AssetHandle assetHandle)
         {
-            LocalCache.SelectedCategory = (AssetCategory)evt.newValue;
+            _isViewDirty |= LocalCache.RemoveAsset(assetHandle);
+        }
+
+        private void RemoveAllItems()
+        {
+            if (EditorUtility.DisplayDialog("Warning",
+                "You are about to remove all items. This action cannot be undone.\nDo you want to remove?",
+                "Remove", "Cancel"))
+            {
+                LocalCache.RemoveAllAssets();
+                _isViewDirty = true;
+            }
+        }
+
+        private void SelectCategory(AssetCategory selectedCategory)
+        {
+            LocalCache.SelectedCategory = selectedCategory;
+            _assetListView.reorderable = selectedCategory == AssetCategory.None;
+
+            // TODO: Filter asset items
         }
 
 
         #region Toolbar
 
+        private void AddExternalFile()
+        {
+            string filePath = EditorUtility.OpenFilePanel("Select File", null, null);
+            if (string.IsNullOrEmpty(filePath))
+            {
+                return;
+            }
 
+            StringBuilder errorsBuilder = null;
+            _isViewDirty |= LocalCache.AddExternalFiles(new string[] { filePath }, ref errorsBuilder, false);
+            if (errorsBuilder != null && errorsBuilder.Length > 0)
+            {
+                ShowNotification(new GUIContent(errorsBuilder.ToString()));
+            }
+        }
+
+        private void AddExternalFolder()
+        {
+            string folderPath = EditorUtility.OpenFolderPanel("Select Folder", null, null);
+            if (string.IsNullOrEmpty(folderPath))
+            {
+                return;
+            }
+
+            StringBuilder errorsBuilder = null;
+            _isViewDirty |= LocalCache.AddExternalFiles(new string[] { folderPath }, ref errorsBuilder, false);
+            if (errorsBuilder != null && errorsBuilder.Length > 0)
+            {
+                ShowNotification(new GUIContent(errorsBuilder.ToString()));
+            }
+        }
 
         #endregion
 
@@ -263,42 +396,6 @@ namespace GBG.AssetQuickAccess.Editor
             LocalCache.ForceSave();
         }
 
-        private void RemoveAsset(AssetHandle assetHandle)
-        {
-            _isViewDirty |= LocalCache.RemoveAsset(assetHandle);
-        }
-
-        private void OnDragAndDrop(IList<UObject> objects, IList<string> paths)
-        {
-            StringBuilder errorsBuilder = null;
-
-            // External files
-            if (objects.Count == 0 && paths.Count > 0)
-            {
-                _isViewDirty |= LocalCache.AddExternalFiles(paths, ref errorsBuilder);
-                return;
-            }
-
-            // Scene objects and AssetDatabase assets
-            HashSet<UObject> objectHashSet = new HashSet<UObject>(objects);
-            // Sometimes the dragged assets are not included in DragAndDrop.objectReferences, for unknown reasons.
-            // Here we perform a protective check.
-            foreach (string path in paths)
-            {
-                UObject asset = AssetDatabase.LoadAssetAtPath<UObject>(path);
-                if (objectHashSet.Add(asset))
-                {
-                    UDebug.LogWarning($"[AssetQuickAccess] Dragged asset '{asset}' is not included in DragAndDrop.objectReferences.", asset);
-                }
-            }
-            _isViewDirty |= LocalCache.AddObjects(objectHashSet, ref errorsBuilder);
-
-            if (errorsBuilder != null && errorsBuilder.Length > 0)
-            {
-                ShowNotification(new GUIContent(errorsBuilder.ToString()));
-            }
-        }
-
         #endregion
 
 
@@ -306,13 +403,6 @@ namespace GBG.AssetQuickAccess.Editor
 
         void IHasCustomMenu.AddItemsToMenu(GenericMenu menu)
         {
-            menu.AddItem(new GUIContent("Clear All Items"), false, () =>
-            {
-                LocalCache.ClearAllAssets();
-                _isViewDirty = true;
-            });
-            menu.AddSeparator("");
-
             // Source Code
             menu.AddItem(new GUIContent("Source Code"), false, () =>
             {
