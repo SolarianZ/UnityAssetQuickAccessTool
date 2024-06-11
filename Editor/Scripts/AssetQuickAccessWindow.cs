@@ -220,7 +220,7 @@ namespace GBG.AssetQuickAccess.Editor
             toolbarMenu.menu.AppendAction("Add External File", _ => AddExternalFile());
             toolbarMenu.menu.AppendAction("Add External Folder", _ => AddExternalFolder());
             toolbarMenu.menu.AppendSeparator("");
-            toolbarMenu.menu.AppendAction("Remove all Items", _ => RemoveAllItems());
+            toolbarMenu.menu.AppendAction("Remove All Items", _ => RemoveAllItems());
             toolbar.Add(toolbarMenu);
 
             #endregion

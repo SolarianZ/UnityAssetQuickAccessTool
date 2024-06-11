@@ -280,11 +280,21 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnClick()
         {
+            if (_assetHandle.Category == AssetCategory.ExternalFile)
+            {
+                Bind(_assetHandle);
+            }
+
             _assetHandle.PingAsset();
         }
 
         private void OnDoubleClick()
         {
+            if (_assetHandle.Category == AssetCategory.ExternalFile)
+            {
+                Bind(_assetHandle);
+            }
+
             _assetHandle.OpenAsset();
         }
 
@@ -301,6 +311,7 @@ namespace GBG.AssetQuickAccess.Editor
                     break;
 
                 case AssetCategory.ExternalFile:
+                    Bind(_assetHandle);
                     ShowExternalFileContextMenu(mousePosition);
                     break;
 
