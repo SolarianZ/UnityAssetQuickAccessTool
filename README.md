@@ -9,7 +9,7 @@ Pin frequently used Unity objects and external files/folders to a separate edito
 ## Features
 
 - Record frequently used resources, including:
-  - Unity assets
+  - Project assets
   - Scene objects and components
   - External files and folders
 - Filter recorded items by category.
