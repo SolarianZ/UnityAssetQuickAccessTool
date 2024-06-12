@@ -361,5 +361,18 @@ namespace GBG.AssetQuickAccess.Editor
                     throw new ArgumentOutOfRangeException(nameof(Category), Category, null);
             }
         }
+
+
+        #region Legacy compatibility
+
+        internal void UpgradeOldVersionData()
+        {
+            if (_category == AssetCategory.None)
+            {
+                _category = AssetCategory.ProjectAsset;
+            }
+        }
+
+        #endregion
     }
 }

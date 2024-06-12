@@ -121,17 +121,18 @@ namespace GBG.AssetQuickAccess.Editor
 
             #region Remove Old Version Items
 
-            bool oldItemsRemoved = false;
+            bool oldItemsUpgraded = false;
             for (int i = LocalCache.AssetHandles.Count - 1; i >= 0; i--)
             {
-                if (LocalCache.AssetHandles[i].Category == AssetCategory.None)
+                AssetHandle assetHandle = LocalCache.AssetHandles[i];
+                if (assetHandle.Category == AssetCategory.None)
                 {
-                    LocalCache.AssetHandles.RemoveAt(i);
-                    oldItemsRemoved = true;
+                    assetHandle.UpgradeOldVersionData();
+                    oldItemsUpgraded = true;
                 }
             }
 
-            if (oldItemsRemoved)
+            if (oldItemsUpgraded)
             {
                 LocalCache.ForceSave();
             }
