@@ -12,7 +12,7 @@ namespace GBG.AssetQuickAccess.Editor
         FilePathAttribute.Location.ProjectFolder)]
     internal class AssetQuickAccessLocalCache : ScriptableSingleton<AssetQuickAccessLocalCache>
     {
-        public IList AssetHandles => _assetHandles;
+        public IList<AssetHandle> AssetHandles => _assetHandles;
         public AssetCategory SelectedCategory
         {
             get { return _selectedCategory; }

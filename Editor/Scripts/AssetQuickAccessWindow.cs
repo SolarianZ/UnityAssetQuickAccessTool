@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEditor;
@@ -33,21 +34,24 @@ namespace GBG.AssetQuickAccess.Editor
                 foreach (string rawPath in paths)
                 {
                     string path = rawPath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                    if (path.StartsWith(Application.dataPath))
+                    UObject asset = null;
+                    if (path.StartsWith("Assets") || path.StartsWith("Packages"))
                     {
-                        UObject asset = AssetDatabase.LoadAssetAtPath<UObject>(path);
-                        if (asset)
-                        {
-                            objectHashSet.Add(asset);
-                        }
-                        else
-                        {
-                            externalPathHashSet.Add(path);
-                        }
+                        asset = AssetDatabase.LoadAssetAtPath<UObject>(path);
+                    }
+                    else if (path.StartsWith(Application.dataPath))
+                    {
+                        path = Path.Combine("Assets", path.Remove(0, Application.dataPath.Length));
+                        asset = AssetDatabase.LoadAssetAtPath<UObject>(path);
+                    }
+
+                    if (asset)
+                    {
+                        objectHashSet.Add(asset);
                     }
                     else
                     {
-                        externalPathHashSet.Add(path);
+                        externalPathHashSet.Add(rawPath);
                     }
                 }
             }
@@ -56,7 +60,7 @@ namespace GBG.AssetQuickAccess.Editor
             bool added = AssetQuickAccessLocalCache.instance.AddObjects(objectHashSet, ref errorsBuilder, false);
             if (externalPathHashSet != null)
             {
-                added |= AssetQuickAccessLocalCache.instance.AddExternalPaths(paths, ref errorsBuilder, false);
+                added |= AssetQuickAccessLocalCache.instance.AddExternalPaths(externalPathHashSet, ref errorsBuilder, false);
             }
 
             if (_instance)
@@ -113,6 +117,26 @@ namespace GBG.AssetQuickAccess.Editor
              * EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
              * EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
              */
+
+
+            #region Remove Old Version Items
+
+            bool oldItemsRemoved = false;
+            for (int i = LocalCache.AssetHandles.Count - 1; i >= 0; i--)
+            {
+                if (LocalCache.AssetHandles[i].Category == AssetCategory.None)
+                {
+                    LocalCache.AssetHandles.RemoveAt(i);
+                    oldItemsRemoved = true;
+                }
+            }
+
+            if (oldItemsRemoved)
+            {
+                LocalCache.ForceSave();
+            }
+
+            #endregion
         }
 
         private void OnDisable()
@@ -276,7 +300,7 @@ namespace GBG.AssetQuickAccess.Editor
 
                 if (LocalCache.SelectedCategory == AssetCategory.None)
                 {
-                    _assetListView.itemsSource = LocalCache.AssetHandles;
+                    _assetListView.itemsSource = LocalCache.AssetHandles as IList;
                     _assetListView.reorderable = true;
                 }
                 else

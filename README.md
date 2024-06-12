@@ -47,3 +47,9 @@ Open the Asset Quick Access window from the menu "Tools/Bamboo/Asset Quick Acces
 - Use the **Add External File** option in the window toolbar's dropdown menu to add an external file.
 - Use the **Add External Folder** option in the window toolbar's dropdown menu to add an external folder.
 - Use the **Remove All Items** option in the window toolbar's dropdown menu to clear all recorded items.
+
+## Known Issues
+
+1. Upgrading from versions prior to 3.0.0 will result in the clearing of old version records.
+2. Files and folders from the project folder (`Application.dataPath`) cannot be dragged into the quick access window because Unity does not provide external drag-and-drop callbacks for such items.
+   - **Solution**: Use the add external item options from the toolbar dropdown menu instead of dragging.

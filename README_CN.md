@@ -27,9 +27,9 @@ Unity 2021.2及更低版本的Unity请使用 [1.2.1](https://github.com/Solarian
 
 ## 安装
 
-[![openupm](https://img.shields.io/npm/v/com.greenbamboogames.assetquickaccess?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.cn/packages/com.greenbamboogames.assetquickaccess/)
+[![openupm](https://img.shields.io/npm/v/com.greenbamboogames.assetquickaccess?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.greenbamboogames.assetquickaccess/)
 
-从 [OpenUPM](https://openupm.cn/packages/com.greenbamboogames.assetquickaccess) 安装，或者直接将此仓库克隆到项目的Packages文件夹下。
+从 [OpenUPM](https://openupm.com/packages/com.greenbamboogames.assetquickaccess) 安装，或者直接将此仓库克隆到项目的Packages文件夹下。
 
 ## 如何使用
 
@@ -47,3 +47,9 @@ Unity 2021.2及更低版本的Unity请使用 [1.2.1](https://github.com/Solarian
 - 使用窗口工具栏下拉菜单中的 **Add External File** 选项添加一个外部文件。
 - 使用窗口工具栏下拉菜单中的 **Add External Folder** 选项添加一个外部文件夹。
 - 使用窗口工具栏下拉菜单中的 **Remove All Items** 选项清除已记录的所有项目。
+
+## 已知问题
+
+1. 从3.0.0之前的版本升级后，旧版本的记录会被清除。
+2. 无法将工程文件夹（`Application.dataPath`）中的文件和文件夹拖拽到快速访问窗口，因为Unity没有为此类项目提供对外的拖拽回调。
+   - 解决方案：使用工具栏下拉菜单中的添加外部项选项替代拖拽。
