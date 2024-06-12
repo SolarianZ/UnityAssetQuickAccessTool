@@ -2,6 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using UObject = UnityEngine.Object;
 
@@ -389,23 +390,29 @@ namespace GBG.AssetQuickAccess.Editor
         private static Texture _externalFileTextureSmallCache;
         private static Texture _warningTextureCache;
 
-        private static Texture GetObjectIcon(UObject obj, SceneAsset scene)
+        private static Texture GetObjectIcon(UObject obj, SceneAsset containingScene)
         {
-            Texture iconTex;
             if (obj)
             {
-                iconTex = AssetPreview.GetMiniThumbnail(obj);
-            }
-            else if (scene)
-            {
-                iconTex = GetSceneObjectTexture(false);
-            }
-            else
-            {
-                iconTex = GetWarningTexture();
+                return AssetPreview.GetMiniThumbnail(obj);
             }
 
-            return iconTex;
+            if (containingScene)
+            {
+                string scenePath = AssetDatabase.GetAssetPath(containingScene);
+                for (int i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    Scene scene = SceneManager.GetSceneAt(i);
+                    if (scene.isLoaded && scene.path == scenePath)
+                    {
+                        return GetWarningTexture();
+                    }
+                }
+
+                return GetSceneObjectTexture(false);
+            }
+
+            return GetWarningTexture();
         }
 
         private static Texture GetSceneObjectTexture(bool small)
