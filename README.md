@@ -52,3 +52,4 @@ Open the Asset Quick Access window from the menu "Tools/Bamboo/Asset Quick Acces
 
 1. Files and folders from the project folder (`Application.dataPath`) cannot be dragged into the quick access window because Unity does not provide external drag-and-drop callbacks for such items.
    - **Solution**: Use the add external item options from the toolbar dropdown menu instead of dragging.
+2. When objects dynamically generated in Play Mode are deleted and new equivalent objects (with the same type, path, etc.) are regenerated, the quick access tool is unable to associate the new equivalent objects with the previous ones, and will consider the previous objects to be in a "Missing" state.
