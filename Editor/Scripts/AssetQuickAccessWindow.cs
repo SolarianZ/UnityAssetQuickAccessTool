@@ -78,8 +78,9 @@ namespace GBG.AssetQuickAccess.Editor
         }
 
 #if !GBG_AQA_CONTEXT_MENU_OFF
-        [MenuItem("Assets/Bamboo/Add to Asset Quick Access", priority = 20)]
-        [MenuItem("GameObject/Bamboo/Add to Asset Quick Access", priority = 0)]
+        [MenuItem("Assets/Bamboo/Add to Asset Quick Access")]
+        [MenuItem("GameObject/Bamboo/Add to Asset Quick Access")]
+        //[MenuItem("CONTEXT/Component/Bamboo/Add to Asset Quick Access")] // Cannot get the context object
 #endif
         public static void AddSelectedObjects()
         {
@@ -88,6 +89,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         [MenuItem("Assets/Bamboo/Add to Asset Quick Access", validate = true)]
         [MenuItem("GameObject/Bamboo/Add to Asset Quick Access", validate = true)]
+        //[MenuItem("CONTEXT/Component/Bamboo/Add to Asset Quick Access", validate = true)]
         private static bool AddSelectedObjectsValidate() => Selection.objects.Length > 0;
 
 
