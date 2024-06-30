@@ -2,7 +2,7 @@
 
 [中文](./README_CN.md)
 
-Pin frequently used Unity objects and external files/folders to a separate editor window. An enhanced version of the Unity's Favorites feature.
+Pin frequently used Unity objects and external files/folders/urls to a separate editor window. An enhanced version of the Unity's Favorites feature.
 
 ![Asset Quick Access Window](./Documents~/imgs/img_sample_asset_quick_access_window.png)
 
