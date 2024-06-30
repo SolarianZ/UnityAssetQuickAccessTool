@@ -109,6 +109,18 @@ namespace GBG.AssetQuickAccess.Editor
             return externalFileHandle;
         }
 
+        public static AssetHandle CreateFromUrl(string url, out string error)
+        {
+            AssetHandle urlHandle = new AssetHandle
+            {
+                _category = AssetCategory.Url,
+                _guid = url,
+            };
+
+            error = null;
+            return urlHandle;
+        }
+
         public static void ForceSaveLocalCache()
         {
             AssetQuickAccessLocalCache.instance.ForceSave();
@@ -151,6 +163,7 @@ namespace GBG.AssetQuickAccess.Editor
                     break;
 
                 case AssetCategory.ExternalFile:
+                case AssetCategory.Url:
                     break;
 
                 default:
@@ -209,6 +222,10 @@ namespace GBG.AssetQuickAccess.Editor
                     }
                     break;
 
+                case AssetCategory.Url:
+                    Application.OpenURL(_guid);
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Category), Category, null);
             }
@@ -248,6 +265,9 @@ namespace GBG.AssetQuickAccess.Editor
 
                 case AssetCategory.ExternalFile:
                     return Path.GetFileName(GetAssetPath());
+
+                case AssetCategory.Url:
+                    return _guid;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Category), Category, null);
@@ -290,6 +310,7 @@ namespace GBG.AssetQuickAccess.Editor
                     return null;
 
                 case AssetCategory.ExternalFile:
+                case AssetCategory.Url:
                     return _guid;
 
                 default:
@@ -357,9 +378,17 @@ namespace GBG.AssetQuickAccess.Editor
                         return $"Missing    (Path: {path})<i>";
                     }
 
+                case AssetCategory.Url:
+                    return _guid;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Category), Category, null);
             }
+        }
+
+        public bool CheckFilter(AssetCategory filter)
+        {
+            return (Category & filter) != 0;
         }
 
 

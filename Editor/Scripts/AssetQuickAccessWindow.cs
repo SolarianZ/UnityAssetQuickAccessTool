@@ -19,7 +19,7 @@ namespace GBG.AssetQuickAccess.Editor
             GetWindow<AssetQuickAccessWindow>();
         }
 
-        public static void AddItems(IList<UObject> objects, IList<string> paths)
+        public static void AddItems(IList<UObject> objects, IList<string> paths, IList<string> urls)
         {
             HashSet<UObject> objectHashSet = new HashSet<UObject>(objects?.Count ?? 0);
             if (objects != null)
@@ -27,10 +27,10 @@ namespace GBG.AssetQuickAccess.Editor
                 objectHashSet = new HashSet<UObject>(objects);
             }
 
-            HashSet<string> externalPathHashSet = null;
+            HashSet<string> stringHashSet = null; // For paths and urls
             if (paths != null)
             {
-                externalPathHashSet = new HashSet<string>(paths?.Count ?? 0);
+                stringHashSet = new HashSet<string>(paths?.Count ?? 0);
                 foreach (string rawPath in paths)
                 {
                     string path = rawPath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -51,16 +51,28 @@ namespace GBG.AssetQuickAccess.Editor
                     }
                     else
                     {
-                        externalPathHashSet.Add(rawPath);
+                        stringHashSet.Add(rawPath);
                     }
                 }
             }
 
             StringBuilder errorsBuilder = null;
             bool added = AssetQuickAccessLocalCache.instance.AddObjects(objectHashSet, ref errorsBuilder, false);
-            if (externalPathHashSet != null)
+            if (stringHashSet != null)
             {
-                added |= AssetQuickAccessLocalCache.instance.AddExternalPaths(externalPathHashSet, ref errorsBuilder, false);
+                added |= AssetQuickAccessLocalCache.instance.AddExternalPaths(stringHashSet, ref errorsBuilder, false);
+            }
+
+            if (urls != null)
+            {
+                stringHashSet?.Clear();
+                stringHashSet ??= new HashSet<string>(urls.Count);
+                for (int i = 0; i < urls.Count; i++)
+                {
+                    stringHashSet.Add(urls[i]);
+                }
+
+                added |= AssetQuickAccessLocalCache.instance.AddUrls(stringHashSet, ref errorsBuilder, false);
             }
 
             if (_instance)
@@ -83,7 +95,7 @@ namespace GBG.AssetQuickAccess.Editor
 #endif
         public static void AddSelectedObjects()
         {
-            AddItems(Selection.objects, null);
+            AddItems(Selection.objects, null, null);
         }
 
         [MenuItem("Assets/Bamboo/Add to Asset Quick Access", validate = true)]
@@ -96,7 +108,7 @@ namespace GBG.AssetQuickAccess.Editor
         {
             if (command.context)
             {
-                AddItems(new UObject[] { command.context }, null);
+                AddItems(new UObject[] { command.context }, null, null);
             }
         }
 #endif
@@ -211,7 +223,7 @@ namespace GBG.AssetQuickAccess.Editor
             RadioButton allCategoryButton = new RadioButton()
             {
                 text = "All",
-                value = LocalCache.SelectedCategory == AssetCategory.None,
+                value = LocalCache.SelectedCategories == AssetCategory.None,
                 style = { marginRight = CategoryButtonMarginRight }
             };
             allCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.None); });
@@ -221,7 +233,7 @@ namespace GBG.AssetQuickAccess.Editor
             RadioButton assetsCategoryButton = new RadioButton()
             {
                 text = "Assets",
-                value = LocalCache.SelectedCategory == AssetCategory.ProjectAsset,
+                value = LocalCache.SelectedCategories == AssetCategory.ProjectAsset,
                 style = { marginRight = CategoryButtonMarginRight }
             };
             assetsCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.ProjectAsset); });
@@ -231,7 +243,7 @@ namespace GBG.AssetQuickAccess.Editor
             RadioButton sceneObjectsCategoryButton = new RadioButton()
             {
                 text = "Scene Objects",
-                value = LocalCache.SelectedCategory == AssetCategory.SceneObject,
+                value = LocalCache.SelectedCategories == AssetCategory.SceneObject,
                 style = { marginRight = CategoryButtonMarginRight }
             };
             sceneObjectsCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.SceneObject); });
@@ -240,11 +252,11 @@ namespace GBG.AssetQuickAccess.Editor
             // External Files Category
             RadioButton externalFilesCategoryButton = new RadioButton()
             {
-                text = "External Files",
-                value = LocalCache.SelectedCategory == AssetCategory.ExternalFile,
+                text = "External Items",
+                value = LocalCache.SelectedCategories == (AssetCategory.ExternalFile | AssetCategory.Url),
                 style = { marginRight = CategoryButtonMarginRight }
             };
-            externalFilesCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.ExternalFile); });
+            externalFilesCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url); });
             radioButtonGroup.Add(externalFilesCategoryButton);
 
             // Toolbar Menu
@@ -253,8 +265,9 @@ namespace GBG.AssetQuickAccess.Editor
                 tooltip = "Add External File or Folder",
                 style = { flexShrink = 0 }
             };
-            toolbarMenu.menu.AppendAction("Add External File", _ => AddExternalFile());
-            toolbarMenu.menu.AppendAction("Add External Folder", _ => AddExternalFolder());
+            toolbarMenu.menu.AppendAction("Add External File", AddExternalFile);
+            toolbarMenu.menu.AppendAction("Add External Folder", AddExternalFolder);
+            toolbarMenu.menu.AppendAction("Add URL", AddUrlEditor);
             toolbarMenu.menu.AppendSeparator("");
             toolbarMenu.menu.AppendAction("Remove All Items", _ => RemoveAllItems());
             toolbar.Add(toolbarMenu);
@@ -263,7 +276,7 @@ namespace GBG.AssetQuickAccess.Editor
 
 
             DragAndDropManipulator dragDropManipulator = new DragAndDropManipulator(rootVisualElement);
-            dragDropManipulator.OnDragAndDrop += AddItems;
+            dragDropManipulator.OnDragAndDrop += (objects, paths) => AddItems(objects, paths, null);
 
             // Asset list view
             _assetListView = new ListView
@@ -310,7 +323,7 @@ namespace GBG.AssetQuickAccess.Editor
             {
                 UpdateFilteredAssetHandles();
 
-                if (LocalCache.SelectedCategory == AssetCategory.None)
+                if (LocalCache.SelectedCategories == AssetCategory.None)
                 {
                     _assetListView.itemsSource = LocalCache.AssetHandles as IList;
                     _assetListView.reorderable = true;
@@ -385,21 +398,21 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void SelectCategory(AssetCategory selectedCategory)
         {
-            LocalCache.SelectedCategory = selectedCategory;
+            LocalCache.SelectedCategories = selectedCategory;
             SetViewDirty();
         }
 
         private void UpdateFilteredAssetHandles()
         {
             _filteredAssetHandles.Clear();
-            if (LocalCache.SelectedCategory == AssetCategory.None)
+            if (LocalCache.SelectedCategories == AssetCategory.None)
             {
                 return;
             }
 
             foreach (AssetHandle assetHandle in LocalCache.AssetHandles)
             {
-                if (assetHandle.Category == LocalCache.SelectedCategory)
+                if (assetHandle.CheckFilter(LocalCache.SelectedCategories))
                 {
                     _filteredAssetHandles.Add(assetHandle);
                 }
@@ -409,7 +422,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         #region Toolbar
 
-        private void AddExternalFile()
+        private void AddExternalFile(DropdownMenuAction action)
         {
             string filePath = EditorUtility.OpenFilePanel("Select File", null, null);
             if (string.IsNullOrEmpty(filePath))
@@ -429,7 +442,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
         }
 
-        private void AddExternalFolder()
+        private void AddExternalFolder(DropdownMenuAction action)
         {
             string folderPath = EditorUtility.OpenFolderPanel("Select Folder", null, null);
             if (string.IsNullOrEmpty(folderPath))
@@ -447,6 +460,23 @@ namespace GBG.AssetQuickAccess.Editor
             {
                 ShowNotification(new GUIContent(errorsBuilder.ToString()));
             }
+        }
+
+        private void AddUrlEditor(DropdownMenuAction action)
+        {
+            Vector2 center = position.center;
+            center.y = position.yMin + 100;
+            UrlEditWindow.Open(center, AddUrl);
+        }
+
+        private void AddUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return;
+            }
+
+            AddItems(null, null, new string[] { url });
         }
 
         #endregion

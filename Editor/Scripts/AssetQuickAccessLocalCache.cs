@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEditor;
@@ -13,7 +12,7 @@ namespace GBG.AssetQuickAccess.Editor
     internal class AssetQuickAccessLocalCache : ScriptableSingleton<AssetQuickAccessLocalCache>
     {
         public IList<AssetHandle> AssetHandles => _assetHandles;
-        public AssetCategory SelectedCategory
+        public AssetCategory SelectedCategories
         {
             get { return _selectedCategory; }
             set
@@ -134,6 +133,47 @@ namespace GBG.AssetQuickAccess.Editor
                     _assetHandles.Add(handle);
                     added = true;
                 }
+            }
+
+            if (added)
+            {
+                ForceSave();
+            }
+
+            return added;
+        }
+
+        public bool AddUrls(HashSet<string> urls, ref StringBuilder errorsBuilder, bool clearErrorsBuilder)
+        {
+            if (clearErrorsBuilder)
+            {
+                errorsBuilder?.Clear();
+            }
+
+            bool added = false;
+            foreach (string url in urls)
+            {
+                if (_assetHandles.Any(h => h.GetAssetPath() == url))
+                {
+                    errorsBuilder ??= new StringBuilder();
+                    errorsBuilder.AppendLine("URL already exists.");
+                    continue;
+                }
+
+                AssetHandle handle = AssetHandle.CreateFromUrl(url, out string error);
+                if (!string.IsNullOrEmpty(error))
+                {
+                    errorsBuilder ??= new StringBuilder();
+                    errorsBuilder.AppendLine(error);
+                }
+
+                if (handle == null)
+                {
+                    continue;
+                }
+
+                _assetHandles.Add(handle);
+                added = true;
             }
 
             if (added)

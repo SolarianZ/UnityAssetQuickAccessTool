@@ -121,6 +121,13 @@ namespace GBG.AssetQuickAccess.Editor
                     categoryIconTooltip = "External File of Folder";
                     break;
 
+                case AssetCategory.Url:
+                    string url = _assetHandle.GetAssetPath();
+                    assetIconTex = GetUrlTexture();
+                    categoryIconTex = assetIconTex;
+                    categoryIconTooltip = "URL";
+                    break;
+
                 default:
                     throw new System.ArgumentOutOfRangeException(nameof(_assetHandle.Category), _assetHandle.Category, null);
             }
@@ -316,6 +323,10 @@ namespace GBG.AssetQuickAccess.Editor
                     ShowExternalFileContextMenu(mousePosition);
                     break;
 
+                case AssetCategory.Url:
+                    ShowUrlContextMenu(mousePosition);
+                    break;
+
                 default:
                     throw new System.ArgumentOutOfRangeException(nameof(_assetHandle.Category), _assetHandle.Category, null);
             }
@@ -381,6 +392,17 @@ namespace GBG.AssetQuickAccess.Editor
             menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
         }
 
+        private void ShowUrlContextMenu(Vector2 mousePosition)
+        {
+            Assert.IsTrue(_assetHandle.Category == AssetCategory.Url);
+
+            GenericDropdownMenu menu = new GenericDropdownMenu();
+            menu.AddItem("Open", false, _assetHandle.OpenAsset);
+            menu.AddItem("Copy URL", false, _assetHandle.CopyPathToSystemBuffer);
+            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
+            menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
+        }
+
 
         #region Static Textures
 
@@ -388,6 +410,7 @@ namespace GBG.AssetQuickAccess.Editor
         private static Texture _sceneObjectTextureSmallCache;
         private static Texture _externalFileTextureCache;
         private static Texture _externalFileTextureSmallCache;
+        private static Texture _urlTextureCache;
         private static Texture _warningTextureCache;
 
         private static Texture GetObjectIcon(UObject obj, SceneAsset containingScene)
@@ -459,6 +482,16 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             return _externalFileTextureCache;
+        }
+
+        private static Texture GetUrlTexture()
+        {
+            if (!_urlTextureCache)
+            {
+                _urlTextureCache = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_BuildSettings.Web.Small" : "BuildSettings.Web.Small");
+            }
+
+            return _urlTextureCache;
         }
 
         private static Texture GetWarningTexture()
