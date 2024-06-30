@@ -8,10 +8,11 @@ Pin frequently used Unity objects and external files/folders to a separate edito
 
 ## Features
 
-- Record frequently used resources, including:
+- Record frequently used objects, including:
   - Project assets
   - Scene objects and components
   - External files and folders
+  - External URLs(text content)
 - Filter recorded items by category.
 - Quickly locate / open recorded items.
 - Copy the path of recorded items.
@@ -46,6 +47,7 @@ Open the Asset Quick Access window from the menu "Tools/Bamboo/Asset Quick Acces
 - Use the category buttons on the window's toolbar to filter items.
 - Use the **Add External File** option in the window toolbar's dropdown menu to add an external file.
 - Use the **Add External Folder** option in the window toolbar's dropdown menu to add an external folder.
+- Use the **Add URL** option in the window toolbar's dropdown menu to add an external url.
 - Use the **Remove All Items** option in the window toolbar's dropdown menu to clear all recorded items.
 
 ## Known Issues
