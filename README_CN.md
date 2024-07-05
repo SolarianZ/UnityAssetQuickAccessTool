@@ -24,7 +24,7 @@
 
 Unity 2021.3 或更新版本。
 
-Unity 2021.2及更低版本的Unity请使用 [1.2.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.2.1) 版本。
+Unity 2017.4 - Unity 2021.2请使用 [1.2.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.2.1) 版本。
 
 ## 安装
 
@@ -34,9 +34,10 @@ Unity 2021.2及更低版本的Unity请使用 [1.2.1](https://github.com/Solarian
 
 ## 如何使用
 
-从菜单 “Tools/Bamboo/Asset Quick Access 打开资产快速访问工具窗口。
+从菜单 **Tools/Bamboo/Asset Quick Access** 或者快捷键 `Ctrl Q` 打开资产快速访问工具窗口。
 
-- 将项目 **拖放** 到窗口中来记录该项目，或右键点击Unity对象，选择 **Bamboo/Add to Asset Quick Access** 选项类记录该对象。
+- 将项目 **拖放** 到工具窗口中，可以记录该项目。
+- 在Unity对象上下文菜单中，选择 **Bamboo/Add to Asset Quick Access** ，可以记录该对象。
 - 使用 **鼠标左键单击** 已记录项目，可以在Editor中定位（Ping）此项目。
   - 若项目是Scene中的对象或组件，且Scene未打开，则改为定位其所在的SceneAsset；
   - 若项目是外部文件或文件夹，则什么都不做。
@@ -49,6 +50,10 @@ Unity 2021.2及更低版本的Unity请使用 [1.2.1](https://github.com/Solarian
 - 使用窗口工具栏下拉菜单中的 **Add External Folder** 选项添加一个外部文件夹。
 - 使用窗口工具栏下拉菜单中的 **Add URL** 选项添加一个外部链接。
 - 使用窗口工具栏下拉菜单中的 **Remove All Items** 选项清除已记录的所有项目。
+
+若要禁用快捷键，请在 **Edit > Project Settings > Player** 中添加 [脚本编译条件符号](https://docs.unity3d.com/Manual/CustomScriptingSymbols.html) `GBG_AQA_HOTKEY_OFF` 。也可以通过 [Shortcuts Manager](https://docs.unity3d.com/Manual/ShortcutsManager.html) 调整快捷键。
+
+若要禁用Unity对象上下文菜单项，请在 **Edit > Project Settings > Player** 中添加 [脚本编译条件符号](https://docs.unity3d.com/Manual/CustomScriptingSymbols.html) `GBG_AQA_CONTEXT_MENU_OFF` 。
 
 ## 已知问题
 

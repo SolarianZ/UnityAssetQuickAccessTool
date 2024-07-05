@@ -24,7 +24,7 @@ Pin frequently used Unity objects and external files/folders/urls to a separate 
 
 Unity 2021.3 and later.
 
-For Unity 2021.2 and earlier versions of Unity, please use version [1.2.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.2.1).
+For Unity 2017.4 - Unity 2021.2, please use version [1.2.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.2.1).
 
 ## Installation
 
@@ -34,9 +34,10 @@ Install this package via [OpenUPM](https://openupm.com/packages/com.greenbamboog
 
 ## How to use
 
-Open the Asset Quick Access window from the menu "Tools/Bamboo/Asset Quick Access".
+Open the Asset Quick Access window from the menu **Tools/Bamboo/Asset Quick Access** or the `Ctrl+Q` shortcut.
 
-- **Drag and drop** items into the window to record them, or right-click on a Unity object and select the **Bamboo/Add to Asset Quick Access** option to record the object.
+- **Drag and drop** items into the window to record them.
+-  In the Unity object context menu, selecting **Bamboo/Add to Asset Quick Access** can record that object.
 - **Left-click** on a recorded item to locate (ping) it in the Editor.
   - If the item is an object or component in a Scene and the Scene is not open, it will locate the containing SceneAsset instead.
   - If the item is an external file or folder, no action will be taken.
@@ -49,6 +50,10 @@ Open the Asset Quick Access window from the menu "Tools/Bamboo/Asset Quick Acces
 - Use the **Add External Folder** option in the window toolbar's dropdown menu to add an external folder.
 - Use the **Add URL** option in the window toolbar's dropdown menu to add an external url.
 - Use the **Remove All Items** option in the window toolbar's dropdown menu to clear all recorded items.
+
+To disable the shortcut, add the [scripting symbol](https://docs.unity3d.com/Manual/CustomScriptingSymbols.html) `GBG_AQA_HOTKEY_OFF` in **Edit > Project Settings > Player** . You can also adjust the shortcut through the [Shortcuts Manager](https://docs.unity3d.com/Manual/ShortcutsManager.html).
+
+To disable the Unity object context menu item, add the [scripting symbol](https://docs.unity3d.com/Manual/CustomScriptingSymbols.html) `GBG_AQA_CONTEXT_MENU_OFF` in **Edit > Project Settings > Player**.
 
 ## Known Issues
 

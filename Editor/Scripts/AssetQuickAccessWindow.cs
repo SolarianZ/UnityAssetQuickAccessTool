@@ -12,7 +12,11 @@ namespace GBG.AssetQuickAccess.Editor
 {
     public class AssetQuickAccessWindow : EditorWindow, IHasCustomMenu
     {
+#if !GBG_AQA_HOTKEY_OFF
+        [MenuItem("Tools/Bamboo/Asset Quick Access %q")]
+#else
         [MenuItem("Tools/Bamboo/Asset Quick Access")]
+#endif
         [MenuItem("Window/Asset Management/Asset Quick Access")]
         public static void Open()
         {
