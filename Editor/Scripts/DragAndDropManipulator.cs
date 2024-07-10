@@ -45,6 +45,12 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnDragPerform(DragPerformEvent _)
         {
+            if (AssetItemView.DragGenericData.Equals(DragAndDrop.GetGenericData(AssetItemView.DragGenericData)))
+            {
+                DragAndDrop.SetGenericData(AssetItemView.DragGenericData, null);
+                return;
+            }
+
             // Sometimes the dragged assets are not included in DragAndDrop.objectReferences, for unknown reasons.
             OnDragAndDrop?.Invoke(DragAndDrop.objectReferences, DragAndDrop.paths);
         }

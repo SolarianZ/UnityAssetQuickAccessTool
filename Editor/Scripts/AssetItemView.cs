@@ -10,6 +10,7 @@ namespace GBG.AssetQuickAccess.Editor
 {
     internal class AssetItemView : IMGUIContainer
     {
+        public const string DragGenericData = "GBG_AQA_DragItem";
         public static double DoubleClickInterval = 0.3f;
 
         private AssetHandle _assetHandle;
@@ -267,6 +268,7 @@ namespace GBG.AssetQuickAccess.Editor
                         DragAndDrop.PrepareStartDrag();
                         if (_assetHandle.Asset)
                         {
+                            DragAndDrop.SetGenericData(DragGenericData, DragGenericData);
                             DragAndDrop.objectReferences = new UObject[] { _assetHandle.Asset };
                             DragAndDrop.paths = new string[] { AssetDatabase.GetAssetPath(_assetHandle.Asset) };
                         }
