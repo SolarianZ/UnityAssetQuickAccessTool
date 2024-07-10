@@ -37,6 +37,11 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnDragUpdate(DragUpdatedEvent _)
         {
+            if (AssetItemView.DragGenericData.Equals(DragAndDrop.GetGenericData(AssetItemView.DragGenericData)))
+            {
+                return;
+            }
+
             if (DragAndDrop.paths.Length > 0 || DragAndDrop.objectReferences.Length > 0)
             {
                 DragAndDrop.visualMode = DragAndDropVisualMode.Generic;

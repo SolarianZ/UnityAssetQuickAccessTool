@@ -277,7 +277,8 @@ namespace GBG.AssetQuickAccess.Editor
                     break;
 
                 case EventType.DragUpdated:
-                    if (DragAndDrop.objectReferences.Length > 0)
+                    if (DragAndDrop.objectReferences.Length > 0 &&
+                        !DragGenericData.Equals(DragAndDrop.GetGenericData(DragGenericData)))
                     {
                         DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
                     }
