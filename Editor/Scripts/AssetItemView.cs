@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -8,27 +9,28 @@ using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
-    internal class AssetItemView : IMGUIContainer
+    internal class AssetItemView : VisualElement
     {
         public const string DragGenericData = "GBG_AQA_DragItem";
-        public static double DoubleClickInterval = 0.3f;
 
-        private AssetHandle _assetHandle;
+        public AssetHandle AssetHandle { get; private set; }
         private Image _assetIcon;
         private Image _categoryIcon;
         private Label _label;
         private MouseAction _mouseAction = MouseAction.None;
         private double _lastClickTime;
 
-        public event System.Action<AssetHandle> OnWantsToRemoveAssetItem;
+        public event Action<AssetHandle> OnWantsToRemoveAssetItem;
 
 
         public AssetItemView()
         {
-            onGUIHandler = OnGUI;
-
-            // To avoid conflict with the drag action of the ListView items.
-            this.RegisterCallback<PointerDownEvent>(evt => evt.StopImmediatePropagation());
+            // this.RegisterCallback<PointerDownEvent>(evt => evt.StopImmediatePropagation()); // To avoid conflict with the drag action of the ListView items.
+            AssetItemViewActionManipulator actionManipulator = new AssetItemViewActionManipulator();
+            actionManipulator.Clicked += OnClick;
+            actionManipulator.DoubleClicked += OnDoubleClick;
+            actionManipulator.ContextClicked += OnContextClick;
+            this.AddManipulator(actionManipulator);
 
             // content
             style.height = new Length(100, LengthUnit.Percent);
@@ -90,31 +92,31 @@ namespace GBG.AssetQuickAccess.Editor
 
         public void Bind(AssetHandle target)
         {
-            _assetHandle = target;
-            _assetHandle.Update();
+            AssetHandle = target;
+            AssetHandle.Update();
 
-            tooltip = _assetHandle.GetAssetPath();
-            _label.text = _assetHandle.GetDisplayName();
+            tooltip = AssetHandle.GetAssetPath();
+            _label.text = AssetHandle.GetDisplayName();
 
             string categoryIconTooltip;
             Texture assetIconTex;
             Texture categoryIconTex;
-            switch (_assetHandle.Category)
+            switch (AssetHandle.Category)
             {
                 case AssetCategory.ProjectAsset:
-                    assetIconTex = GetObjectIcon(_assetHandle.Asset, null);
+                    assetIconTex = GetObjectIcon(AssetHandle.Asset, null);
                     categoryIconTex = null;
                     categoryIconTooltip = null;
                     break;
 
                 case AssetCategory.SceneObject:
-                    assetIconTex = GetObjectIcon(_assetHandle.Asset, _assetHandle.Scene);
+                    assetIconTex = GetObjectIcon(AssetHandle.Asset, AssetHandle.Scene);
                     categoryIconTex = GetSceneObjectTexture(true);
                     categoryIconTooltip = "Scene Object";
                     break;
 
                 case AssetCategory.ExternalFile:
-                    string path = _assetHandle.GetAssetPath();
+                    string path = AssetHandle.GetAssetPath();
                     assetIconTex = File.Exists(path) || Directory.Exists(path)
                         ? GetExternalFileTexture(false)
                         : GetWarningTexture();
@@ -123,14 +125,14 @@ namespace GBG.AssetQuickAccess.Editor
                     break;
 
                 case AssetCategory.Url:
-                    string url = _assetHandle.GetAssetPath();
+                    string url = AssetHandle.GetAssetPath();
                     assetIconTex = GetUrlTexture();
                     categoryIconTex = assetIconTex;
                     categoryIconTooltip = "URL";
                     break;
 
                 default:
-                    throw new System.ArgumentOutOfRangeException(nameof(_assetHandle.Category), _assetHandle.Category, null);
+                    throw new ArgumentOutOfRangeException(nameof(AssetHandle.Category), AssetHandle.Category, null);
             }
 
             _assetIcon.image = assetIconTex;
@@ -155,7 +157,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         public void Unbind()
         {
-            _assetHandle = null;
+            AssetHandle = null;
 
             tooltip = null;
             _assetIcon.image = null;
@@ -193,125 +195,29 @@ namespace GBG.AssetQuickAccess.Editor
             Add(_categoryIcon);
         }
 
-        private void OnGUI()
-        {
-            Event e = Event.current;
-            switch (e.type)
-            {
-                case EventType.MouseDown:
-                    if (e.button == 0)
-                    {
-                        double currentTime = EditorApplication.timeSinceStartup;
-                        if (currentTime - _lastClickTime < DoubleClickInterval)
-                        {
-                            _mouseAction = MouseAction.DoubleClick;
-                            _lastClickTime = 0;
-                        }
-                        else
-                        {
-                            _mouseAction = MouseAction.Click;
-                            _lastClickTime = currentTime;
-                        }
-                        e.Use();
-                    }
-                    else if (e.button == 1)
-                    {
-                        _mouseAction = MouseAction.ContextClick;
-                        e.Use();
-                    }
-                    break;
-
-                case EventType.MouseUp:
-                    switch (_mouseAction)
-                    {
-                        case MouseAction.Click:
-                            if (e.button == 0)
-                            {
-                                _mouseAction = MouseAction.None;
-                                OnClick();
-                                e.Use();
-                            }
-                            break;
-
-                        case MouseAction.DoubleClick:
-                            if (e.button == 0)
-                            {
-                                _mouseAction = MouseAction.None;
-                                OnDoubleClick();
-                                e.Use();
-                            }
-                            break;
-
-                        case MouseAction.ContextClick:
-                            if (e.button == 1)
-                            {
-                                _mouseAction = MouseAction.None;
-                                OnContextClick(e.mousePosition);
-                                e.Use();
-                            }
-                            break;
-
-                        case MouseAction.None:
-                        case MouseAction.Drag: // If drag happens, the code can't reach here.
-                            break;
-
-                        default:
-                            throw new System.ArgumentOutOfRangeException(nameof(_mouseAction));
-                    }
-
-                    break;
-
-                case EventType.MouseDrag:
-                    if (_mouseAction == MouseAction.Click)
-                    {
-                        _mouseAction = MouseAction.Drag;
-                        DragAndDrop.PrepareStartDrag();
-                        if (_assetHandle.Asset)
-                        {
-                            DragAndDrop.SetGenericData(DragGenericData, DragGenericData);
-                            DragAndDrop.objectReferences = new UObject[] { _assetHandle.Asset };
-                            DragAndDrop.paths = new string[] { AssetDatabase.GetAssetPath(_assetHandle.Asset) };
-                        }
-                        DragAndDrop.StartDrag(null);
-                    }
-                    break;
-
-                case EventType.DragUpdated:
-                    if (DragAndDrop.objectReferences.Length > 0 &&
-                        !DragGenericData.Equals(DragAndDrop.GetGenericData(DragGenericData)))
-                    {
-                        DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
         private void OnClick()
         {
-            if (_assetHandle.Category == AssetCategory.ExternalFile)
+            if (AssetHandle.Category == AssetCategory.ExternalFile)
             {
-                Bind(_assetHandle);
+                Bind(AssetHandle);
             }
 
-            _assetHandle.PingAsset();
+            AssetHandle.PingAsset();
         }
 
         private void OnDoubleClick()
         {
-            if (_assetHandle.Category == AssetCategory.ExternalFile)
+            if (AssetHandle.Category == AssetCategory.ExternalFile)
             {
-                Bind(_assetHandle);
+                Bind(AssetHandle);
             }
 
-            _assetHandle.OpenAsset();
+            AssetHandle.OpenAsset();
         }
 
         private void OnContextClick(Vector2 mousePosition)
         {
-            switch (_assetHandle.Category)
+            switch (AssetHandle.Category)
             {
                 case AssetCategory.ProjectAsset:
                     ShowProjectAssetContextMenu(mousePosition);
@@ -322,7 +228,7 @@ namespace GBG.AssetQuickAccess.Editor
                     break;
 
                 case AssetCategory.ExternalFile:
-                    Bind(_assetHandle);
+                    Bind(AssetHandle);
                     ShowExternalFileContextMenu(mousePosition);
                     break;
 
@@ -331,79 +237,82 @@ namespace GBG.AssetQuickAccess.Editor
                     break;
 
                 default:
-                    throw new System.ArgumentOutOfRangeException(nameof(_assetHandle.Category), _assetHandle.Category, null);
+                    throw new ArgumentOutOfRangeException(nameof(AssetHandle.Category), AssetHandle.Category, null);
             }
         }
 
         private void ShowProjectAssetContextMenu(Vector2 mousePosition)
         {
-            Assert.IsTrue(_assetHandle.Category == AssetCategory.ProjectAsset);
+            Assert.IsTrue(AssetHandle.Category == AssetCategory.ProjectAsset);
 
             GenericDropdownMenu menu = new GenericDropdownMenu();
-            if (_assetHandle.Asset)
+            if (AssetHandle.Asset)
             {
-                menu.AddItem("Open", false, _assetHandle.OpenAsset);
-                menu.AddItem("Copy Path", false, _assetHandle.CopyPathToSystemBuffer);
-                menu.AddItem("Copy Guid", false, _assetHandle.CopyGuidToSystemBuffer);
-                menu.AddItem("Copy Type", false, _assetHandle.CopyTypeFullNameToSystemBuffer);
-                menu.AddItem("Show in Folder", false, _assetHandle.ShowInFolder);
+                menu.AddItem("Open", false, AssetHandle.OpenAsset);
+                menu.AddItem("Copy Path", false, AssetHandle.CopyPathToSystemBuffer);
+                menu.AddItem("Copy Guid", false, AssetHandle.CopyGuidToSystemBuffer);
+                menu.AddItem("Copy Type", false, AssetHandle.CopyTypeFullNameToSystemBuffer);
+                menu.AddItem("Show in Folder", false, AssetHandle.ShowInFolder);
             }
             else
             {
-                menu.AddItem("Copy Guid", false, _assetHandle.CopyGuidToSystemBuffer);
+                menu.AddItem("Copy Guid", false, AssetHandle.CopyGuidToSystemBuffer);
             }
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
-            menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
+
+            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
         }
 
         private void ShowSceneObjectContextMenu(Vector2 mousePosition)
         {
-            Assert.IsTrue(_assetHandle.Category == AssetCategory.SceneObject);
+            Assert.IsTrue(AssetHandle.Category == AssetCategory.SceneObject);
 
             GenericDropdownMenu menu = new GenericDropdownMenu();
-            if (_assetHandle.Asset)
+            if (AssetHandle.Asset)
             {
-                menu.AddItem("Open", false, _assetHandle.OpenAsset);
-                menu.AddItem("Copy Hierarchy Path", false, _assetHandle.CopyPathToSystemBuffer);
-                menu.AddItem("Copy Type", false, _assetHandle.CopyTypeFullNameToSystemBuffer);
+                menu.AddItem("Open", false, AssetHandle.OpenAsset);
+                menu.AddItem("Copy Hierarchy Path", false, AssetHandle.CopyPathToSystemBuffer);
+                menu.AddItem("Copy Type", false, AssetHandle.CopyTypeFullNameToSystemBuffer);
             }
-            else if (_assetHandle.Scene)
+            else if (AssetHandle.Scene)
             {
-                menu.AddItem("Open in Scene", false, _assetHandle.OpenAsset);
+                menu.AddItem("Open in Scene", false, AssetHandle.OpenAsset);
             }
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
-            menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
+
+            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
         }
 
         private void ShowExternalFileContextMenu(Vector2 mousePosition)
         {
-            Assert.IsTrue(_assetHandle.Category == AssetCategory.ExternalFile);
+            Assert.IsTrue(AssetHandle.Category == AssetCategory.ExternalFile);
 
             GenericDropdownMenu menu = new GenericDropdownMenu();
-            string path = _assetHandle.GetAssetPath();
+            string path = AssetHandle.GetAssetPath();
             if (File.Exists(path) || Directory.Exists(path))
             {
-                menu.AddItem("Open", false, _assetHandle.OpenAsset);
-                menu.AddItem("Copy Path", false, _assetHandle.CopyPathToSystemBuffer);
-                menu.AddItem("Show in Folder", false, _assetHandle.ShowInFolder);
+                menu.AddItem("Open", false, AssetHandle.OpenAsset);
+                menu.AddItem("Copy Path", false, AssetHandle.CopyPathToSystemBuffer);
+                menu.AddItem("Show in Folder", false, AssetHandle.ShowInFolder);
             }
             else
             {
-                menu.AddItem("Copy Path", false, _assetHandle.CopyPathToSystemBuffer);
+                menu.AddItem("Copy Path", false, AssetHandle.CopyPathToSystemBuffer);
             }
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
-            menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
+
+            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
         }
 
         private void ShowUrlContextMenu(Vector2 mousePosition)
         {
-            Assert.IsTrue(_assetHandle.Category == AssetCategory.Url);
+            Assert.IsTrue(AssetHandle.Category == AssetCategory.Url);
 
             GenericDropdownMenu menu = new GenericDropdownMenu();
-            menu.AddItem("Open", false, _assetHandle.OpenAsset);
-            menu.AddItem("Copy URL", false, _assetHandle.CopyPathToSystemBuffer);
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(_assetHandle));
-            menu.DropDown(new Rect(this.LocalToWorld(mousePosition), Vector2.zero), this);
+            menu.AddItem("Open", false, AssetHandle.OpenAsset);
+            menu.AddItem("Copy URL", false, AssetHandle.CopyPathToSystemBuffer);
+            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
         }
 
 
@@ -449,8 +358,8 @@ namespace GBG.AssetQuickAccess.Editor
                 {
                     _sceneObjectTextureSmallCache = (Texture)EditorGUIUtility.Load(
                         EditorGUIUtility.isProSkin
-                        ? "d_UnityEditor.SceneHierarchyWindow"
-                        : "UnityEditor.SceneHierarchyWindow");
+                            ? "d_UnityEditor.SceneHierarchyWindow"
+                            : "UnityEditor.SceneHierarchyWindow");
                 }
 
                 return _sceneObjectTextureSmallCache;
@@ -460,8 +369,8 @@ namespace GBG.AssetQuickAccess.Editor
             {
                 _sceneObjectTextureCache = (Texture)EditorGUIUtility.Load(
                     EditorGUIUtility.isProSkin
-                    ? "d_UnityEditor.SceneHierarchyWindow@2x"
-                    : "UnityEditor.SceneHierarchyWindow@2x");
+                        ? "d_UnityEditor.SceneHierarchyWindow@2x"
+                        : "UnityEditor.SceneHierarchyWindow@2x");
             }
 
             return _sceneObjectTextureCache;

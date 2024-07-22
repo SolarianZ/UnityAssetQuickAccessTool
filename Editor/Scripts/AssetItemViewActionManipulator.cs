@@ -1,51 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
-    public interface IDragAndDropDataProvider
-    {
-        /// <summary>
-        /// Get data associated with current drag and drop operation.
-        /// </summary>
-        /// <returns></returns>
-        IEnumerable<KeyValuePair<string, object>> GetGenericData();
-
-        /// <summary>
-        /// Get the objects being dragged.
-        /// </summary>
-        /// <returns></returns>
-        Object[] GetObjectReferences();
-
-        /// <summary>
-        /// Get the file names being dragged.
-        /// </summary>
-        /// <returns></returns>
-        string[] GetPaths();
-
-        /// <summary>
-        /// Get the dragging title.
-        /// </summary>
-        /// <returns></returns>
-        string GetTitle();
-    }
-
     public class AssetItemViewActionManipulator : PointerManipulator
     {
-        private readonly IDragAndDropDataProvider _dragAndDropDataProvider;
+        internal AssetHandle AssetHandle => ((AssetItemView)target).AssetHandle;
         private bool _draggable;
+        private int _clickCount;
 
-
-        public AssetItemViewActionManipulator(IDragAndDropDataProvider dragAndDropDataProvider)
-        {
-            _dragAndDropDataProvider = dragAndDropDataProvider;
-        }
+        public Action Clicked;
+        public Action DoubleClicked;
+        public Action<Vector2> ContextClicked;
 
 
         protected override void RegisterCallbacksOnTarget()
         {
+            target.RegisterCallback<ContextClickEvent>(OnContextClick);
             target.RegisterCallback<PointerDownEvent>(OnPointerDown);
             target.RegisterCallback<PointerUpEvent>(OnPointerUp);
             target.RegisterCallback<PointerMoveEvent>(OnPointerMove);
@@ -53,23 +27,52 @@ namespace GBG.AssetQuickAccess.Editor
 
         protected override void UnregisterCallbacksFromTarget()
         {
+            target.UnregisterCallback<ContextClickEvent>(OnContextClick);
             target.UnregisterCallback<PointerDownEvent>(OnPointerDown);
             target.UnregisterCallback<PointerUpEvent>(OnPointerUp);
             target.UnregisterCallback<PointerMoveEvent>(OnPointerMove);
         }
 
-        private void OnPointerDown(PointerDownEvent evt)
+        private void OnContextClick(ContextClickEvent evt)
         {
             evt.StopImmediatePropagation();
-            _draggable = true;
+            _draggable = false;
+            _clickCount = 0;
+
+            ContextClicked?.Invoke(evt.mousePosition);
+        }
+
+        private void OnPointerDown(PointerDownEvent evt)
+        {
+            if (evt.button == 0) // Left click
+            {
+                evt.StopImmediatePropagation();
+                _draggable = true;
+                _clickCount = evt.clickCount;
+            }
         }
 
         private void OnPointerUp(PointerUpEvent evt)
         {
-            if (_draggable)
+            if (evt.button == 0) // Left click
             {
-                evt.StopImmediatePropagation();
-                _draggable = false;
+                int clickCount = _clickCount;
+                _clickCount = 0;
+                if (_draggable)
+                {
+                    _draggable = false;
+                    evt.StopImmediatePropagation();
+
+                    switch (clickCount)
+                    {
+                        case 1: // Click
+                            Clicked?.Invoke();
+                            break;
+                        case 2: // Double click
+                            DoubleClicked?.Invoke();
+                            break;
+                    }
+                }
             }
         }
 
@@ -78,22 +81,15 @@ namespace GBG.AssetQuickAccess.Editor
             if (_draggable)
             {
                 evt.StopImmediatePropagation();
-
                 _draggable = false;
+                _clickCount = 0;
+
+                // MEMO: This DragAndDrop code causes the VisualElement to fail to receive the PointerUpEvent
                 DragAndDrop.PrepareStartDrag();
-
-                IEnumerable<KeyValuePair<string, object>> genericData = _dragAndDropDataProvider.GetGenericData();
-                if (genericData != null)
-                {
-                    foreach (KeyValuePair<string, object> kv in genericData)
-                    {
-                        DragAndDrop.SetGenericData(kv.Key, kv.Value);
-                    }
-                }
-
-                DragAndDrop.objectReferences = _dragAndDropDataProvider.GetObjectReferences();
-                DragAndDrop.paths = _dragAndDropDataProvider.GetPaths();
-                DragAndDrop.StartDrag(_dragAndDropDataProvider.GetTitle());
+                DragAndDrop.SetGenericData(AssetItemView.DragGenericData, AssetItemView.DragGenericData);
+                DragAndDrop.objectReferences = new UObject[] { AssetHandle.Asset };
+                DragAndDrop.paths = new string[] { AssetDatabase.GetAssetPath(AssetHandle.Asset) };
+                DragAndDrop.StartDrag(null);
             }
         }
     }
