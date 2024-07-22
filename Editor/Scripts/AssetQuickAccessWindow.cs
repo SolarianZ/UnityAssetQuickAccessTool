@@ -25,7 +25,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         public static void AddItems(IList<UObject> objects, IList<string> paths, IList<string> urls)
         {
-            HashSet<UObject> objectHashSet = new HashSet<UObject>(objects?.Count ?? 0);
+            HashSet<UObject> objectHashSet = new HashSet<UObject>();
             if (objects != null)
             {
                 objectHashSet = new HashSet<UObject>(objects);
@@ -34,7 +34,7 @@ namespace GBG.AssetQuickAccess.Editor
             HashSet<string> stringHashSet = null; // For paths and urls
             if (paths != null)
             {
-                stringHashSet = new HashSet<string>(paths?.Count ?? 0);
+                stringHashSet = new HashSet<string>();
                 foreach (string rawPath in paths)
                 {
                     string path = rawPath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -70,7 +70,10 @@ namespace GBG.AssetQuickAccess.Editor
             if (urls != null)
             {
                 stringHashSet?.Clear();
-                stringHashSet ??= new HashSet<string>(urls.Count);
+                if (stringHashSet == null)
+                {
+                    stringHashSet = new HashSet<string>();
+                }
                 for (int i = 0; i < urls.Count; i++)
                 {
                     stringHashSet.Add(urls[i]);
@@ -211,57 +214,69 @@ namespace GBG.AssetQuickAccess.Editor
             };
             rootVisualElement.Add(toolbar);
 
-            // Radio Button Group
-            const float CategoryButtonMarginRight = 8;
-            RadioButtonGroup radioButtonGroup = new RadioButtonGroup
-            {
-                style = { flexShrink = 1 },
-            };
-#if UNITY_2022_2_OR_NEWER
-            radioButtonGroup.Q(className: RadioButtonGroup.containerUssClassName).style.flexDirection = FlexDirection.Row;
-#endif
-            //radioButtonGroup.RegisterValueChangedCallback(SelectCategory); // Not work in Unity 2021
-            toolbar.Add(radioButtonGroup);
-
-            // All Category
-            RadioButton allCategoryButton = new RadioButton()
-            {
-                text = "All",
-                value = LocalCache.SelectedCategories == AssetCategory.None,
-                style = { marginRight = CategoryButtonMarginRight }
-            };
-            allCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.None); });
-            radioButtonGroup.Add(allCategoryButton);
-
-            // Project Assets Category
-            RadioButton assetsCategoryButton = new RadioButton()
-            {
-                text = "Assets",
-                value = LocalCache.SelectedCategories == AssetCategory.ProjectAsset,
-                style = { marginRight = CategoryButtonMarginRight }
-            };
-            assetsCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.ProjectAsset); });
-            radioButtonGroup.Add(assetsCategoryButton);
-
-            // Scene Objects Category
-            RadioButton sceneObjectsCategoryButton = new RadioButton()
-            {
-                text = "Scene Objects",
-                value = LocalCache.SelectedCategories == AssetCategory.SceneObject,
-                style = { marginRight = CategoryButtonMarginRight }
-            };
-            sceneObjectsCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.SceneObject); });
-            radioButtonGroup.Add(sceneObjectsCategoryButton);
-
-            // External Files Category
-            RadioButton externalFilesCategoryButton = new RadioButton()
-            {
-                text = "External Items",
-                value = LocalCache.SelectedCategories == (AssetCategory.ExternalFile | AssetCategory.Url),
-                style = { marginRight = CategoryButtonMarginRight }
-            };
-            externalFilesCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url); });
-            radioButtonGroup.Add(externalFilesCategoryButton);
+//             // Radio Button Group
+//             const float CategoryButtonMarginRight = 8;
+//             RadioButtonGroup radioButtonGroup = new RadioButtonGroup
+//             {
+//                 style = { flexShrink = 1 },
+//             };
+// #if UNITY_2022_2_OR_NEWER
+//             radioButtonGroup.Q(className: RadioButtonGroup.containerUssClassName).style.flexDirection = FlexDirection.Row;
+// #endif
+//             //radioButtonGroup.RegisterValueChangedCallback(SelectCategory); // Not work in Unity 2021
+//             toolbar.Add(radioButtonGroup);
+//
+//             // All Category
+//             RadioButton allCategoryButton = new RadioButton()
+//             {
+//                 text = "All",
+//                 value = LocalCache.SelectedCategories == AssetCategory.None,
+//                 style = { marginRight = CategoryButtonMarginRight }
+//             };
+//             allCategoryButton.RegisterValueChangedCallback(evt =>
+//             {
+//                 if (evt.newValue) SelectCategory(AssetCategory.None);
+//             });
+//             radioButtonGroup.Add(allCategoryButton);
+//
+//             // Project Assets Category
+//             RadioButton assetsCategoryButton = new RadioButton()
+//             {
+//                 text = "Assets",
+//                 value = LocalCache.SelectedCategories == AssetCategory.ProjectAsset,
+//                 style = { marginRight = CategoryButtonMarginRight }
+//             };
+//             assetsCategoryButton.RegisterValueChangedCallback(evt =>
+//             {
+//                 if (evt.newValue) SelectCategory(AssetCategory.ProjectAsset);
+//             });
+//             radioButtonGroup.Add(assetsCategoryButton);
+//
+//             // Scene Objects Category
+//             RadioButton sceneObjectsCategoryButton = new RadioButton()
+//             {
+//                 text = "Scene Objects",
+//                 value = LocalCache.SelectedCategories == AssetCategory.SceneObject,
+//                 style = { marginRight = CategoryButtonMarginRight }
+//             };
+//             sceneObjectsCategoryButton.RegisterValueChangedCallback(evt =>
+//             {
+//                 if (evt.newValue) SelectCategory(AssetCategory.SceneObject);
+//             });
+//             radioButtonGroup.Add(sceneObjectsCategoryButton);
+//
+//             // External Files Category
+//             RadioButton externalFilesCategoryButton = new RadioButton()
+//             {
+//                 text = "External Items",
+//                 value = LocalCache.SelectedCategories == (AssetCategory.ExternalFile | AssetCategory.Url),
+//                 style = { marginRight = CategoryButtonMarginRight }
+//             };
+//             externalFilesCategoryButton.RegisterValueChangedCallback(evt =>
+//             {
+//                 if (evt.newValue) SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url);
+//             });
+//             radioButtonGroup.Add(externalFilesCategoryButton);
 
             // Toolbar Menu
             ToolbarMenu toolbarMenu = new ToolbarMenu
@@ -285,12 +300,12 @@ namespace GBG.AssetQuickAccess.Editor
             // Asset list view
             _assetListView = new ListView
             {
-                fixedItemHeight = 26,
+                itemHeight = 26,
                 //reorderable = LocalCache.SelectedCategory == AssetCategory.None,
-                reorderMode = ListViewReorderMode.Animated,
+                // reorderMode = ListViewReorderMode.Animated,
                 makeItem = CreateNewAssetListItem,
                 bindItem = BindAssetListItem,
-                unbindItem = UnbindAssetListItem,
+                // unbindItem = UnbindAssetListItem,
                 //itemsSource = LocalCache.SelectedCategory == AssetCategory.None
                 //    ? LocalCache.AssetHandles
                 //    : _filteredAssetHandles,
@@ -302,7 +317,8 @@ namespace GBG.AssetQuickAccess.Editor
                     minHeight = 40,
                 }
             };
-            _assetListView.itemIndexChanged += OnReorderAsset;
+            // TODO: item index changed
+            // _assetListView.itemIndexChanged += OnReorderAsset;
             rootVisualElement.Add(_assetListView);
 
             // Tooltip
@@ -312,7 +328,7 @@ namespace GBG.AssetQuickAccess.Editor
                 style =
                 {
                     unityTextAlign = new StyleEnum<TextAnchor>(TextAnchor.MiddleCenter),
-                    textOverflow = new StyleEnum<TextOverflow>(TextOverflow.Ellipsis),
+                    // textOverflow = new StyleEnum<TextOverflow>(TextOverflow.Ellipsis),
                     height = 36
                 }
             };
@@ -330,15 +346,15 @@ namespace GBG.AssetQuickAccess.Editor
                 if (LocalCache.SelectedCategories == AssetCategory.None)
                 {
                     _assetListView.itemsSource = LocalCache.AssetHandles as IList;
-                    _assetListView.reorderable = true;
+                    // _assetListView.reorderable = true;
                 }
                 else
                 {
                     _assetListView.itemsSource = _filteredAssetHandles;
-                    _assetListView.reorderable = false;
+                    // _assetListView.reorderable = false;
                 }
 
-                _assetListView.RefreshItems();
+                _assetListView.Refresh();
                 _isViewDirty = false;
             }
         }
@@ -362,14 +378,13 @@ namespace GBG.AssetQuickAccess.Editor
          *     }
          * }
         */
-
         private void SetViewDirty()
         {
-            if (hasFocus)
+            // if (hasFocus)
             {
                 _isViewDirty = true;
             }
-            else
+            // else
             {
                 _setViewDirtyOnFocus = true;
             }
@@ -392,8 +407,8 @@ namespace GBG.AssetQuickAccess.Editor
         private void RemoveAllItems()
         {
             if (EditorUtility.DisplayDialog("Warning",
-                "You are about to remove all items. This action cannot be undone.\nDo you want to remove?",
-                "Remove", "Cancel"))
+                    "You are about to remove all items. This action cannot be undone.\nDo you want to remove?",
+                    "Remove", "Cancel"))
             {
                 LocalCache.RemoveAllAssets();
                 SetViewDirty();

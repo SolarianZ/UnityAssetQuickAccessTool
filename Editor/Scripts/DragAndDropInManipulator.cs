@@ -6,7 +6,7 @@ using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
-    public class DragAndDropInManipulator : PointerManipulator
+    public class DragAndDropInManipulator : MouseManipulator
     {
         public event Action<IList<UObject>, IList<string>> OnDragAndDrop;
 

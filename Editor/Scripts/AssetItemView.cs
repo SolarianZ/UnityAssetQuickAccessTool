@@ -84,7 +84,7 @@ namespace GBG.AssetQuickAccess.Editor
                     paddingRight = 2,
                     overflow = Overflow.Hidden,
                     unityTextAlign = TextAnchor.MiddleLeft,
-                    textOverflow = TextOverflow.Ellipsis,
+                    // textOverflow = TextOverflow.Ellipsis,
                 }
             };
             Add(_label);
@@ -245,7 +245,6 @@ namespace GBG.AssetQuickAccess.Editor
         {
             Assert.IsTrue(AssetHandle.Category == AssetCategory.ProjectAsset);
 
-#if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             if (AssetHandle.Asset)
             {
@@ -262,31 +261,12 @@ namespace GBG.AssetQuickAccess.Editor
 
             genericMenu.AddItem(new GUIContent("Remove"), false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
             genericMenu.ShowAsContext();
-#else
-            GenericDropdownMenu menu = new GenericDropdownMenu();
-            if (AssetHandle.Asset)
-            {
-                menu.AddItem("Open", false, AssetHandle.OpenAsset);
-                menu.AddItem("Copy Path", false, AssetHandle.CopyPathToSystemBuffer);
-                menu.AddItem("Copy Guid", false, AssetHandle.CopyGuidToSystemBuffer);
-                menu.AddItem("Copy Type", false, AssetHandle.CopyTypeFullNameToSystemBuffer);
-                menu.AddItem("Show in Folder", false, AssetHandle.ShowInFolder);
-            }
-            else
-            {
-                menu.AddItem("Copy Guid", false, AssetHandle.CopyGuidToSystemBuffer);
-            }
-
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
-#endif
         }
 
         private void ShowSceneObjectContextMenu(Vector2 mousePosition)
         {
             Assert.IsTrue(AssetHandle.Category == AssetCategory.SceneObject);
 
-#if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             if (AssetHandle.Asset)
             {
@@ -301,22 +281,6 @@ namespace GBG.AssetQuickAccess.Editor
 
             genericMenu.AddItem(new GUIContent("Remove"), false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
             genericMenu.ShowAsContext();
-#else
-            GenericDropdownMenu menu = new GenericDropdownMenu();
-            if (AssetHandle.Asset)
-            {
-                menu.AddItem("Open", false, AssetHandle.OpenAsset);
-                menu.AddItem("Copy Hierarchy Path", false, AssetHandle.CopyPathToSystemBuffer);
-                menu.AddItem("Copy Type", false, AssetHandle.CopyTypeFullNameToSystemBuffer);
-            }
-            else if (AssetHandle.Scene)
-            {
-                menu.AddItem("Open in Scene", false, AssetHandle.OpenAsset);
-            }
-
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
-#endif
         }
 
         private void ShowExternalFileContextMenu(Vector2 mousePosition)
@@ -324,7 +288,6 @@ namespace GBG.AssetQuickAccess.Editor
             Assert.IsTrue(AssetHandle.Category == AssetCategory.ExternalFile);
 
             string path = AssetHandle.GetAssetPath();
-#if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             if (File.Exists(path) || Directory.Exists(path))
             {
@@ -339,41 +302,17 @@ namespace GBG.AssetQuickAccess.Editor
 
             genericMenu.AddItem(new GUIContent("Remove"), false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
             genericMenu.ShowAsContext();
-#else
-            GenericDropdownMenu menu = new GenericDropdownMenu();
-            if (File.Exists(path) || Directory.Exists(path))
-            {
-                menu.AddItem("Open", false, AssetHandle.OpenAsset);
-                menu.AddItem("Copy Path", false, AssetHandle.CopyPathToSystemBuffer);
-                menu.AddItem("Show in Folder", false, AssetHandle.ShowInFolder);
-            }
-            else
-            {
-                menu.AddItem("Copy Path", false, AssetHandle.CopyPathToSystemBuffer);
-            }
-
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
-#endif
         }
 
         private void ShowUrlContextMenu(Vector2 mousePosition)
         {
             Assert.IsTrue(AssetHandle.Category == AssetCategory.Url);
 
-#if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             genericMenu.AddItem(new GUIContent("Open"), false, AssetHandle.OpenAsset);
             genericMenu.AddItem(new GUIContent("Copy URL"), false, AssetHandle.CopyPathToSystemBuffer);
             genericMenu.AddItem(new GUIContent("Remove"), false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
             genericMenu.ShowAsContext();
-#else
-            GenericDropdownMenu menu = new GenericDropdownMenu();
-            menu.AddItem("Open", false, AssetHandle.OpenAsset);
-            menu.AddItem("Copy URL", false, AssetHandle.CopyPathToSystemBuffer);
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
-#endif
         }
 
 

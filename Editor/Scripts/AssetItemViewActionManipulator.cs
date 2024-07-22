@@ -6,7 +6,7 @@ using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
-    public class AssetItemViewActionManipulator : PointerManipulator
+    public class AssetItemViewActionManipulator : MouseManipulator
     {
         internal AssetHandle AssetHandle => ((AssetItemView)target).AssetHandle;
         private bool _draggable;

@@ -41,7 +41,10 @@ namespace GBG.AssetQuickAccess.Editor
             {
                 if (_assetHandles.Any(h => h.GetAssetPath() == path))
                 {
-                    errorsBuilder ??= new StringBuilder();
+                    if (errorsBuilder == null)
+                    {
+                        errorsBuilder = new StringBuilder();
+                    }
                     errorsBuilder.AppendLine("File or folder already exists.");
                     continue;
                 }
@@ -49,7 +52,11 @@ namespace GBG.AssetQuickAccess.Editor
                 AssetHandle handle = AssetHandle.CreateFromExternalFile(path, out string error);
                 if (!string.IsNullOrEmpty(error))
                 {
-                    errorsBuilder ??= new StringBuilder();
+                    if (errorsBuilder == null)
+                    {
+                        errorsBuilder = new StringBuilder();
+                    }
+
                     errorsBuilder.AppendLine(error);
                 }
 
@@ -84,7 +91,10 @@ namespace GBG.AssetQuickAccess.Editor
                 {
                     if (_assetHandles.Any(h => h.Asset == obj))
                     {
-                        errorsBuilder ??= new StringBuilder();
+                        if (errorsBuilder == null)
+                        {
+                            errorsBuilder = new StringBuilder();
+                        }
                         errorsBuilder.AppendLine("Asset already exists.");
                         continue;
                     }
@@ -92,7 +102,11 @@ namespace GBG.AssetQuickAccess.Editor
                     AssetHandle handle = AssetHandle.CreateFromObject(obj, out string error);
                     if (!string.IsNullOrEmpty(error))
                     {
-                        errorsBuilder ??= new StringBuilder();
+                        if (errorsBuilder == null)
+                        {
+                            errorsBuilder = new StringBuilder();
+                        }
+
                         errorsBuilder.AppendLine(error);
                     }
 
@@ -108,7 +122,10 @@ namespace GBG.AssetQuickAccess.Editor
                 {
                     if (_assetHandles.Any(h => h.Asset == obj))
                     {
-                        errorsBuilder ??= new StringBuilder();
+                        if (errorsBuilder == null)
+                        {
+                            errorsBuilder = new StringBuilder();
+                        }
                         errorsBuilder.AppendLine("Object already exists.");
                         continue;
                     }
@@ -116,7 +133,11 @@ namespace GBG.AssetQuickAccess.Editor
                     AssetHandle handle = AssetHandle.CreateFromObject(obj, out string error);
                     if (!string.IsNullOrEmpty(error))
                     {
-                        errorsBuilder ??= new StringBuilder();
+                        if (errorsBuilder == null)
+                        {
+                            errorsBuilder = new StringBuilder();
+                        }
+
                         errorsBuilder.AppendLine(error);
                     }
 
@@ -155,7 +176,10 @@ namespace GBG.AssetQuickAccess.Editor
             {
                 if (_assetHandles.Any(h => h.GetAssetPath() == url))
                 {
-                    errorsBuilder ??= new StringBuilder();
+                    if (errorsBuilder == null)
+                    {
+                        errorsBuilder = new StringBuilder();
+                    }
                     errorsBuilder.AppendLine("URL already exists.");
                     continue;
                 }
@@ -163,7 +187,11 @@ namespace GBG.AssetQuickAccess.Editor
                 AssetHandle handle = AssetHandle.CreateFromUrl(url, out string error);
                 if (!string.IsNullOrEmpty(error))
                 {
-                    errorsBuilder ??= new StringBuilder();
+                    if (errorsBuilder == null)
+                    {
+                        errorsBuilder = new StringBuilder();
+                    }
+
                     errorsBuilder.AppendLine(error);
                 }
 
