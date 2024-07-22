@@ -279,8 +279,8 @@ namespace GBG.AssetQuickAccess.Editor
             #endregion
 
 
-            DragAndDropManipulator dragDropManipulator = new DragAndDropManipulator(rootVisualElement);
-            dragDropManipulator.OnDragAndDrop += (objects, paths) => AddItems(objects, paths, null);
+            DragAndDropInManipulator dndInManipulator = new DragAndDropInManipulator(rootVisualElement);
+            dndInManipulator.OnDragAndDrop += (objects, paths) => AddItems(objects, paths, null);
 
             // Asset list view
             _assetListView = new ListView
