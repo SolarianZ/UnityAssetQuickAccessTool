@@ -13,7 +13,7 @@ namespace GBG.AssetQuickAccess.Editor
     {
         private const float AssetIconSize = 24f;
         private const float CategoryIconSize = 16f;
-        private const float IconMargin = 4f;
+        private const float IconMargin = 2f;
         private const double DoubleClickInterval = 0.4f;
 
         private ReorderableList _assetList;
@@ -31,7 +31,10 @@ namespace GBG.AssetQuickAccess.Editor
             bool reorderable = LocalCache.SelectedCategories == AssetCategory.None;
             _assetList = new ReorderableList(_filteredAssetHandles, typeof(AssetHandle), reorderable, false, false, false);
             _assetList.headerHeight = 0;
-            _assetList.elementHeightCallback = _ => 26;
+            _assetList.elementHeight = 28;
+            _assetList.showDefaultBackground = false;
+            // _assetList.elementHeightCallback = _ => 26;
+            _assetList.drawElementBackgroundCallback = DrawAssetListItemBackground;
             _assetList.drawElementCallback = DrawAssetListItem;
             _assetList.onReorderCallback = OnReorderAssetList;
         }
@@ -45,6 +48,18 @@ namespace GBG.AssetQuickAccess.Editor
                 _assetList.draggable = LocalCache.SelectedCategories == AssetCategory.None;
                 _assetList.DoLayoutList();
             }
+        }
+
+        private void DrawAssetListItemBackground(Rect rect, int index, bool active, bool focused)
+        {
+            Rect bgRect = new Rect()
+            {
+                x = rect.x + 2, y = rect.y + 1, width = rect.width - 4, height = rect.height - 2,
+            };
+            Color guiColor = GUI.color;
+            GUI.color = rect.Contains(Event.current.mousePosition) ? Color.cyan : guiColor;
+            GUI.Box(bgRect, (string)null);
+            GUI.color = guiColor;
         }
 
         private void DrawAssetListItem(Rect rect, int index, bool isActive, bool isFocused)
@@ -122,7 +137,7 @@ namespace GBG.AssetQuickAccess.Editor
                 };
                 if (_assetItemStyle == null)
                 {
-                    _assetItemStyle = new GUIStyle(GUI.skin.button)
+                    _assetItemStyle = new GUIStyle(GUI.skin.label)
                     {
                         alignment = TextAnchor.MiddleLeft,
                         richText = true,
