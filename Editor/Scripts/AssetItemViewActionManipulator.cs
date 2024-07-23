@@ -84,7 +84,8 @@ namespace GBG.AssetQuickAccess.Editor
                 _draggable = false;
                 _clickCount = 0;
 
-                // MEMO: This DragAndDrop code causes the VisualElement to fail to receive the PointerUpEvent
+                // MEMO Unity Bug: https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-76471
+                // This DragAndDrop code causes the VisualElement to fail to receive the PointerUpEvent
                 DragAndDrop.PrepareStartDrag();
                 DragAndDrop.SetGenericData(AssetItemView.DragGenericData, AssetItemView.DragGenericData);
                 DragAndDrop.objectReferences = new UObject[] { AssetHandle.Asset };
