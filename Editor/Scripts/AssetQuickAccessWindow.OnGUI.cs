@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
-using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
