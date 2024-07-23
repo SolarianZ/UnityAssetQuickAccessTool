@@ -64,7 +64,7 @@ namespace GBG.AssetQuickAccess.Editor
         private void DrawAssetListItem(Rect rect, int index, bool isActive, bool isFocused)
         {
             AssetHandle assetHandle = _filteredAssetHandles[index];
-            string categoryIconTooltip; // TODO: Tooltip
+            // string categoryIconTooltip;
             Texture assetIconTex;
             Texture categoryIconTex;
             switch (assetHandle.Category)
@@ -72,13 +72,13 @@ namespace GBG.AssetQuickAccess.Editor
                 case AssetCategory.ProjectAsset:
                     assetIconTex = TextureUtility.GetObjectIcon(assetHandle);
                     categoryIconTex = null;
-                    categoryIconTooltip = null;
+                    // categoryIconTooltip = null;
                     break;
 
                 case AssetCategory.SceneObject:
                     assetIconTex = TextureUtility.GetObjectIcon(assetHandle);
                     categoryIconTex = TextureUtility.GetSceneObjectTexture(true);
-                    categoryIconTooltip = "Scene Object";
+                    // categoryIconTooltip = "Scene Object";
                     break;
 
                 case AssetCategory.ExternalFile:
@@ -87,14 +87,14 @@ namespace GBG.AssetQuickAccess.Editor
                         ? TextureUtility.GetExternalFileTexture(false)
                         : TextureUtility.GetWarningTexture();
                     categoryIconTex = TextureUtility.GetExternalFileTexture(true);
-                    categoryIconTooltip = "External File of Folder";
+                    // categoryIconTooltip = "External File of Folder";
                     break;
 
                 case AssetCategory.Url:
                     // string url = assetHandle.GetAssetPath();
                     assetIconTex = TextureUtility.GetUrlTexture();
                     categoryIconTex = assetIconTex;
-                    categoryIconTooltip = "URL";
+                    // categoryIconTooltip = "URL";
                     break;
 
                 default:
