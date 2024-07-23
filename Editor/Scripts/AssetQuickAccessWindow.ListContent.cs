@@ -13,25 +13,25 @@ namespace GBG.AssetQuickAccess.Editor
         private const float AssetIconSize = 24f;
         private const float CategoryIconSize = 16f;
         private const float IconMargin = 4f;
+        private const double DoubleClickInterval = 0.4f;
 
-        private ReorderableList _reorderableList;
+        private ReorderableList _assetList;
         private Vector2 _assetListScrollPos;
-        private GUIStyle _assetItemButtonStyle;
-        private GUIStyle _tooltipsLabelStyle;
+        private GUIStyle _assetItemStyle;
+        private GUIStyle _tooltipLabelStyle;
 
-        private static readonly TimeSpan _doubleClickSpan = new TimeSpan(0, 0, 0, 0, 400);
-        private DateTime _lastClickAssetTime;
-        private UObject _lastClickedAsset;
+        private double _lastClickAssetTime;
+        private string _lastClickedAsset;
+        private MouseAction _mouseAction = MouseAction.None;
 
 
         private void CreateListView()
         {
             bool reorderable = LocalCache.SelectedCategories == AssetCategory.None;
-            _reorderableList = new ReorderableList(_filteredAssetHandles,
-                typeof(AssetHandle), reorderable, false, false, false);
-            _reorderableList.elementHeightCallback = _ => 26;
-            _reorderableList.drawElementCallback = DrawAssetListItem;
-            _reorderableList.onReorderCallback = OnReorderAssetList;
+            _assetList = new ReorderableList(_filteredAssetHandles, typeof(AssetHandle), reorderable, false, false, false);
+            _assetList.elementHeightCallback = _ => 26;
+            _assetList.drawElementCallback = DrawAssetListItem;
+            _assetList.onReorderCallback = OnReorderAssetList;
         }
 
         private void DrawListContent()
@@ -40,8 +40,8 @@ namespace GBG.AssetQuickAccess.Editor
             using (EditorGUILayout.ScrollViewScope scrollView = new EditorGUILayout.ScrollViewScope(_assetListScrollPos))
             {
                 _assetListScrollPos = scrollView.scrollPosition;
-                _reorderableList.draggable = LocalCache.SelectedCategories == AssetCategory.None;
-                _reorderableList.DoLayoutList();
+                _assetList.draggable = LocalCache.SelectedCategories == AssetCategory.None;
+                _assetList.DoLayoutList();
             }
         }
 
@@ -106,26 +106,17 @@ namespace GBG.AssetQuickAccess.Editor
                     width = rect.width - AssetIconSize,
                     height = rect.height
                 };
-                if (_assetItemButtonStyle == null)
+                if (_assetItemStyle == null)
                 {
-                    _assetItemButtonStyle = new GUIStyle(GUI.skin.button)
+                    _assetItemStyle = new GUIStyle(GUI.skin.button)
                     {
                         alignment = TextAnchor.MiddleLeft,
                         richText = true,
                     };
                 }
 
-                if (GUI.Button(assetButtonRect, assetHandle.GetDisplayName(), _assetItemButtonStyle))
-                {
-                    if (Event.current.button == 0)
-                    {
-                        OnLeftClickAssetListItem(assetHandle);
-                    }
-                    else if (Event.current.button == 1)
-                    {
-                        OnRightClickAssetListItem(assetHandle);
-                    }
-                }
+                ProcessAssetItemAction(assetButtonRect, assetHandle);
+                GUI.Label(assetButtonRect, assetHandle.GetDisplayName(), _assetItemStyle);
 
                 // category icon
                 if (categoryIconTex)
@@ -155,20 +146,9 @@ namespace GBG.AssetQuickAccess.Editor
             LocalCache.ForceSave();
         }
 
-        private void OnLeftClickAssetListItem(AssetHandle handle)
-        {
-            EditorGUIUtility.PingObject(handle.Asset);
+        private void OnLeftClickAssetListItem(AssetHandle handle) { EditorGUIUtility.PingObject(handle.Asset); }
 
-            var now = DateTime.Now;
-            if (now - _lastClickAssetTime < _doubleClickSpan &&
-                _lastClickedAsset == handle.Asset)
-            {
-                AssetDatabase.OpenAsset(handle.Asset);
-            }
-
-            _lastClickAssetTime = now;
-            _lastClickedAsset = handle.Asset;
-        }
+        private void OnLeftDoubleClickAssetListItem(AssetHandle handle) { AssetDatabase.OpenAsset(handle.Asset); }
 
         private void OnRightClickAssetListItem(AssetHandle assetHandle)
         {
@@ -270,45 +250,107 @@ namespace GBG.AssetQuickAccess.Editor
             genericMenu.ShowAsContext();
         }
 
-        private void ProcessDragAndDropOut()
+        private void ProcessAssetItemAction(Rect dragArea, AssetHandle assetHandle)
         {
             Event e = Event.current;
+            if (!dragArea.Contains(e.mousePosition))
+            {
+                return;
+            }
+
             switch (e.type)
             {
                 case EventType.MouseDown:
-                    Debug.LogError("MouseDown");
+                    if (e.button == 0)
+                    {
+                        double currentTime = EditorApplication.timeSinceStartup;
+                        if (currentTime - _lastClickAssetTime < DoubleClickInterval && assetHandle.Guid.Equals(_lastClickedAsset))
+                        {
+                            _mouseAction = MouseAction.DoubleClick;
+                            _lastClickAssetTime = 0;
+                        }
+                        else
+                        {
+                            _mouseAction = MouseAction.Click;
+                            _lastClickAssetTime = currentTime;
+                            _lastClickedAsset = assetHandle.Guid;
+                        }
+
+                        e.Use();
+                    }
+                    else if (e.button == 1)
+                    {
+                        _mouseAction = MouseAction.ContextClick;
+                        e.Use();
+                    }
+
+                    break;
+
+                case EventType.MouseUp:
+                    switch (_mouseAction)
+                    {
+                        case MouseAction.Click:
+                            if (e.button == 0)
+                            {
+                                _mouseAction = MouseAction.None;
+                                OnLeftClickAssetListItem(assetHandle);
+                                e.Use();
+                            }
+
+                            break;
+
+                        case MouseAction.DoubleClick:
+                            if (e.button == 0)
+                            {
+                                _mouseAction = MouseAction.None;
+                                OnLeftDoubleClickAssetListItem(assetHandle);
+                                e.Use();
+                            }
+
+                            break;
+
+                        case MouseAction.ContextClick:
+                            if (e.button == 1)
+                            {
+                                _mouseAction = MouseAction.None;
+                                OnRightClickAssetListItem(assetHandle);
+                                e.Use();
+                            }
+
+                            break;
+
+                        case MouseAction.None:
+                        case MouseAction.Drag: // If drag happens, the code can't reach here.
+                            break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(_mouseAction));
+                    }
+
                     break;
 
                 case EventType.MouseDrag:
-                    Debug.LogError("MouseDrag");
-                    // if (_mouseAction == MouseAction.Click)
-                    // {
-                    //     _mouseAction = MouseAction.Drag;
-                    //     DragAndDrop.PrepareStartDrag();
-                    //     if (_assetHandle.Asset)
-                    //     {
-                    //         DragAndDrop.SetGenericData(DragGenericData, DragGenericData);
-                    //         DragAndDrop.objectReferences = new UObject[] { _assetHandle.Asset };
-                    //         DragAndDrop.paths = new string[] { AssetDatabase.GetAssetPath(_assetHandle.Asset) };
-                    //     }
-                    //
-                    //     DragAndDrop.StartDrag(null);
-                    // }
+                    if (_mouseAction == MouseAction.Click)
+                    {
+                        _mouseAction = MouseAction.Drag;
+                        DragAndDrop.PrepareStartDrag();
+                        DragAndDrop.SetGenericData(DragGenericData, DragGenericData);
+                        DragAndDrop.objectReferences = new UObject[] { assetHandle.Asset };
+                        DragAndDrop.paths = new string[] { AssetDatabase.GetAssetPath(assetHandle.Asset) };
+                        DragAndDrop.StartDrag(null);
+                    }
 
-                    break;
-
-                // case EventType.DragUpdated:
-                //     if (DragAndDrop.objectReferences.Length > 0 &&
-                //         !DragGenericData.Equals(DragAndDrop.GetGenericData(DragGenericData)))
-                //     {
-                //         DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
-                //     }
-                //
-                //     break;
-
-                default:
                     break;
             }
+        }
+
+        enum MouseAction : byte
+        {
+            None,
+            Click,
+            DoubleClick,
+            ContextClick,
+            Drag,
         }
     }
 }

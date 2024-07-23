@@ -21,27 +21,35 @@ namespace GBG.AssetQuickAccess.Editor
             DrawListContent();
             DrawBottomTips();
 
-            ProcessDragAndDropOut();
+            // ProcessDragAndDropOut();
             ProcessDragAndDropIn();
         }
 
         private void ProcessDragAndDropIn()
         {
             // Allow drag and drop asset to window
-            if (mouseOverWindow == this)
+            if (mouseOverWindow != this)
             {
-                if (Event.current.type == EventType.DragUpdated && DragAndDrop.objectReferences.Length > 0)
+                return;
+            }
+
+            if (Event.current.type == EventType.DragUpdated && DragAndDrop.objectReferences.Length > 0)
+            {
+                if (!DragGenericData.Equals(DragAndDrop.GetGenericData(DragGenericData)))
                 {
                     DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
                 }
-                else if (Event.current.type == EventType.DragExited)
+            }
+            else if (Event.current.type == EventType.DragExited)
+            {
+                Focus();
+
+                Event.current.Use();
+                DragAndDrop.AcceptDrag();
+
+                if (!DragGenericData.Equals(DragAndDrop.GetGenericData(DragGenericData)))
                 {
-                    Focus();
-                    if (DragAndDrop.paths != null)
-                    {
-                        AddItems(DragAndDrop.objectReferences, DragAndDrop.paths, null);
-                        Event.current.Use();
-                    }
+                    AddItems(DragAndDrop.objectReferences, DragAndDrop.paths, null);
                 }
             }
         }
