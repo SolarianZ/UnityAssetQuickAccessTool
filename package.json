@@ -1,9 +1,9 @@
 {
   "name": "com.greenbamboogames.assetquickaccess",
-  "version": "3.1.2",
+  "version": "1.3.0",
   "displayName": "Asset Quick Access!",
   "description": "Pin frequently used objects to a separate editor window. An enhanced version of Unity's Favorites feature.",
-  "unity": "2021.3",
+  "unity": "2019.4",
   "documentationUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool",
   "changelogUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases",
   "licensesUrl": "https://github.com/SolarianZ/UnityAssetQuickAccessTool/blob/main/LICENSE",
