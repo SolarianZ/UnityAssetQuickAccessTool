@@ -1,11 +1,10 @@
 ﻿using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
 {
-    public static class TextureUtility
+    internal static class TextureUtility
     {
         #region Static Textures
 
@@ -16,16 +15,21 @@ namespace GBG.AssetQuickAccess.Editor
         private static Texture _urlTextureCache;
         private static Texture _warningTextureCache;
 
-        public static Texture GetObjectIcon(UObject obj, SceneAsset containingScene)
+        public static Texture GetObjectIcon(AssetHandle assetHandle)
         {
-            if (obj)
+            if (!assetHandle.Asset && assetHandle.Scene)
             {
-                return AssetPreview.GetMiniThumbnail(obj);
+                assetHandle.Update();
             }
 
-            if (containingScene)
+            if (assetHandle.Asset)
             {
-                string scenePath = AssetDatabase.GetAssetPath(containingScene);
+                return AssetPreview.GetMiniThumbnail(assetHandle.Asset);
+            }
+
+            if (assetHandle.Scene)
+            {
+                string scenePath = AssetDatabase.GetAssetPath(assetHandle.Scene);
                 for (int i = 0; i < SceneManager.sceneCount; i++)
                 {
                     Scene scene = SceneManager.GetSceneAt(i);

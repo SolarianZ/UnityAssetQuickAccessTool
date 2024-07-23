@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.SceneManagement;
 using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
@@ -18,7 +19,7 @@ namespace GBG.AssetQuickAccess.Editor
         private ReorderableList _assetList;
         private Vector2 _assetListScrollPos;
         private GUIStyle _assetItemStyle;
-        private GUIStyle _tooltipLabelStyle;
+        private GUIStyle _assetCategoryTooltipStyle;
 
         private double _lastClickAssetTime;
         private string _lastClickedAsset;
@@ -29,6 +30,7 @@ namespace GBG.AssetQuickAccess.Editor
         {
             bool reorderable = LocalCache.SelectedCategories == AssetCategory.None;
             _assetList = new ReorderableList(_filteredAssetHandles, typeof(AssetHandle), reorderable, false, false, false);
+            _assetList.headerHeight = 0;
             _assetList.elementHeightCallback = _ => 26;
             _assetList.drawElementCallback = DrawAssetListItem;
             _assetList.onReorderCallback = OnReorderAssetList;
@@ -54,13 +56,13 @@ namespace GBG.AssetQuickAccess.Editor
             switch (assetHandle.Category)
             {
                 case AssetCategory.ProjectAsset:
-                    assetIconTex = TextureUtility.GetObjectIcon(assetHandle.Asset, null);
+                    assetIconTex = TextureUtility.GetObjectIcon(assetHandle);
                     categoryIconTex = null;
                     categoryIconTooltip = null;
                     break;
 
                 case AssetCategory.SceneObject:
-                    assetIconTex = TextureUtility.GetObjectIcon(assetHandle.Asset, assetHandle.Scene);
+                    assetIconTex = TextureUtility.GetObjectIcon(assetHandle);
                     categoryIconTex = TextureUtility.GetSceneObjectTexture(true);
                     categoryIconTooltip = "Scene Object";
                     break;
@@ -75,7 +77,7 @@ namespace GBG.AssetQuickAccess.Editor
                     break;
 
                 case AssetCategory.Url:
-                    string url = assetHandle.GetAssetPath();
+                    // string url = assetHandle.GetAssetPath();
                     assetIconTex = TextureUtility.GetUrlTexture();
                     categoryIconTex = assetIconTex;
                     categoryIconTooltip = "URL";
@@ -85,10 +87,18 @@ namespace GBG.AssetQuickAccess.Editor
                     throw new ArgumentOutOfRangeException(nameof(assetHandle.Category), assetHandle.Category, null);
             }
 
-            // asset icon / label / category icon
+            // Asset item
             using (new GUILayout.HorizontalScope())
             {
-                // asset icon
+                bool mouseHover = rect.Contains(Event.current.mousePosition);
+                if (mouseHover)
+                {
+                    assetHandle.Update();
+                }
+
+
+                #region Asset icon
+
                 Rect assetIconRect = new Rect
                 {
                     x = rect.x,
@@ -98,7 +108,11 @@ namespace GBG.AssetQuickAccess.Editor
                 };
                 GUI.DrawTexture(assetIconRect, assetIconTex);
 
-                // asset button
+                #endregion
+
+
+                #region Asset clickable label
+
                 Rect assetButtonRect = new Rect
                 {
                     x = rect.x + AssetIconSize,
@@ -116,9 +130,21 @@ namespace GBG.AssetQuickAccess.Editor
                 }
 
                 ProcessAssetItemAction(assetButtonRect, assetHandle);
-                GUI.Label(assetButtonRect, assetHandle.GetDisplayName(), _assetItemStyle);
 
-                // category icon
+                if (mouseHover)
+                {
+                    GUI.Label(assetButtonRect, new GUIContent(assetHandle.GetDisplayName(), assetHandle.GetAssetPath()), _assetItemStyle);
+                }
+                else
+                {
+                    GUI.Label(assetButtonRect, assetHandle.GetDisplayName(), _assetItemStyle);
+                }
+
+                #endregion
+
+
+                #region Category icon
+
                 if (categoryIconTex)
                 {
                     Rect categoryIconRect = new Rect
@@ -130,6 +156,8 @@ namespace GBG.AssetQuickAccess.Editor
                     };
                     GUI.DrawTexture(categoryIconRect, categoryIconTex);
                 }
+
+                #endregion
             }
         }
 
@@ -163,7 +191,6 @@ namespace GBG.AssetQuickAccess.Editor
                     break;
 
                 case AssetCategory.ExternalFile:
-                    // Bind(AssetHandle);
                     ShowExternalFileContextMenu(assetHandle);
                     break;
 
@@ -211,7 +238,22 @@ namespace GBG.AssetQuickAccess.Editor
             }
             else if (assetHandle.Scene)
             {
-                genericMenu.AddItem(new GUIContent("Open in Scene"), false, assetHandle.OpenAsset);
+                bool objectLost = false;
+                string scenePath = AssetDatabase.GetAssetPath(assetHandle.Scene);
+                for (int i = 0; i < SceneManager.sceneCount; i++)
+                {
+                    Scene scene = SceneManager.GetSceneAt(i);
+                    if (scene.isLoaded && scene.path == scenePath)
+                    {
+                        objectLost = true;
+                        break;
+                    }
+                }
+
+                if (!objectLost)
+                {
+                    genericMenu.AddItem(new GUIContent("Open in Scene"), false, assetHandle.OpenAsset);
+                }
             }
 
             genericMenu.AddItem(new GUIContent("Remove"), false, () => RemoveAsset(assetHandle));

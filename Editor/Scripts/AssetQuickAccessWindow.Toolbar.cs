@@ -6,6 +6,8 @@ namespace GBG.AssetQuickAccess.Editor
     public partial class AssetQuickAccessWindow
     {
         private static readonly string[] _toolbarCategoryNames = { "All", "Assets", "Scene Objects", "External Items" };
+        private GUIContent _toolbarMenuContent;
+        private GUIStyle _toolbarMenuStyle;
 
         private void DrawToolbar()
         {
@@ -32,7 +34,22 @@ namespace GBG.AssetQuickAccess.Editor
                     SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url);
                 }
 
-                if (GUILayout.Button("+", GUILayout.Width(20)))
+                if (_toolbarMenuContent == null)
+                {
+                    _toolbarMenuContent = EditorGUIUtility.IconContent(EditorGUIUtility.isProSkin ? "d__Menu" : "_Menu");
+                }
+
+                if (_toolbarMenuStyle == null)
+                {
+                    _toolbarMenuStyle = new GUIStyle(GUI.skin.label);
+                    _toolbarMenuStyle.fixedWidth = 20;
+                    _toolbarMenuStyle.fixedHeight = 20;
+                    // _toolbarMenuStyle.normal.background = new Texture2D(1, 1);
+                    // _toolbarMenuStyle.normal.background.SetPixel(0, 0, Color.clear);
+                    // _toolbarMenuStyle.normal.background.Apply();
+                }
+
+                if (GUILayout.Button(_toolbarMenuContent, _toolbarMenuStyle))
                 {
                     // Toolbar Menu
                     GenericMenu toolbarMenu = new GenericMenu();

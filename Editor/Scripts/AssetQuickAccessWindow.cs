@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.UIElements;
 using UObject = UnityEngine.Object;
 
 namespace GBG.AssetQuickAccess.Editor
@@ -143,14 +139,8 @@ namespace GBG.AssetQuickAccess.Editor
             EditorApplication.hierarchyChanged -= SetViewDirty;
             EditorApplication.hierarchyChanged += SetViewDirty;
 
-            /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
-             * // Fix #5
-             * EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-             * EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-             */
-
-            CreateListView();
             SetViewDirty();
+            CreateListView();
         }
 
         private void OnDisable()
@@ -159,11 +149,6 @@ namespace GBG.AssetQuickAccess.Editor
 
             AssemblyReloadEvents.afterAssemblyReload -= SetViewDirtyDelay;
             EditorApplication.hierarchyChanged -= SetViewDirty;
-
-            /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
-            * // Fix #5
-            * EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-            */
         }
 
         private void ShowButton(Rect position)
@@ -179,23 +164,9 @@ namespace GBG.AssetQuickAccess.Editor
             SetViewDirty();
         }
 
-        /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
-         * // Fix #5
-         * private void OnPlayModeStateChanged(PlayModeStateChange change)
-         * {
-         *     // Fix #4
-         *     // When entering PlayMode, the window will execute OnEnable and reload the data object.
-         *     // When exiting PlayMode, the data object is destroyed, but OnEnable is not executed.
-         *     // Therefore, we need to reassign the data source.
-         *     if (change == PlayModeStateChange.EnteredEditMode)
-         *     {
-         *         _assetListView.itemsSource = AssetQuickAccessLocalCache.instance.AssetHandles;
-         *     }
-         * }
-        */
         private void SetViewDirty()
         {
-                _isViewDirty = true;
+            _isViewDirty = true;
         }
 
         private void SetViewDirtyDelay()
