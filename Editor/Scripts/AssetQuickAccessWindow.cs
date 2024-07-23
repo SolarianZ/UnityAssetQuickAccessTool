@@ -148,26 +148,7 @@ namespace GBG.AssetQuickAccess.Editor
              * EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
              */
 
-
-            #region Remove Old Version Items
-
-            bool oldItemsUpgraded = false;
-            for (int i = LocalCache.AssetHandles.Count - 1; i >= 0; i--)
-            {
-                AssetHandle assetHandle = LocalCache.AssetHandles[i];
-                if (assetHandle.Category == AssetCategory.None)
-                {
-                    assetHandle.UpgradeOldVersionData();
-                    oldItemsUpgraded = true;
-                }
-            }
-
-            if (oldItemsUpgraded)
-            {
-                LocalCache.ForceSave();
-            }
-
-            #endregion
+            CreateGUI_Manual();
         }
 
         private void OnDisable()
@@ -199,7 +180,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
         }
 
-        private void CreateGUI()
+        private void CreateGUI_Manual()
         {
             // For add drag and drop
             rootVisualElement.pickingMode = PickingMode.Position;
