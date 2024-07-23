@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using EditorGUILayout = UnityEditor.Experimental.Networking.PlayerConnection.EditorGUILayout;
 
 namespace GBG.AssetQuickAccess.Editor
 {
@@ -44,9 +45,6 @@ namespace GBG.AssetQuickAccess.Editor
                     _toolbarMenuStyle = new GUIStyle(GUI.skin.label);
                     _toolbarMenuStyle.fixedWidth = 20;
                     _toolbarMenuStyle.fixedHeight = 20;
-                    // _toolbarMenuStyle.normal.background = new Texture2D(1, 1);
-                    // _toolbarMenuStyle.normal.background.SetPixel(0, 0, Color.clear);
-                    // _toolbarMenuStyle.normal.background.Apply();
                 }
 
                 if (GUILayout.Button(_toolbarMenuContent, _toolbarMenuStyle))
@@ -59,6 +57,15 @@ namespace GBG.AssetQuickAccess.Editor
                     toolbarMenu.AddSeparator("");
                     toolbarMenu.AddItem(new GUIContent("Remove All Items"), false, RemoveAllItems);
                     toolbarMenu.ShowAsContext();
+                }
+
+                Rect toolbarMenuRect = GUILayoutUtility.GetLastRect();
+                if (toolbarMenuRect.Contains(Event.current.mousePosition))
+                {
+                    GUI.Box(toolbarMenuRect, (string)null, new GUIStyle()
+                    {
+                        normal = { background = Texture2D.grayTexture }
+                    });
                 }
             }
         }

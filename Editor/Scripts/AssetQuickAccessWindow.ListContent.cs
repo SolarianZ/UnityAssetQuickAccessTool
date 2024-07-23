@@ -13,7 +13,6 @@ namespace GBG.AssetQuickAccess.Editor
     {
         private const float AssetIconSize = 24f;
         private const float CategoryIconSize = 16f;
-        private const float IconMargin = 2f;
         private const double DoubleClickInterval = 0.4f;
 
         private ReorderableList _assetList;
@@ -132,7 +131,9 @@ namespace GBG.AssetQuickAccess.Editor
                 {
                     x = rect.x + AssetIconSize,
                     y = rect.y,
-                    width = rect.width - AssetIconSize,
+                    width = categoryIconTex
+                        ? rect.width - AssetIconSize - CategoryIconSize - 2 // Margin right: 2
+                        : rect.width - AssetIconSize,
                     height = rect.height
                 };
                 if (_assetItemStyle == null)
@@ -164,7 +165,7 @@ namespace GBG.AssetQuickAccess.Editor
                 {
                     Rect categoryIconRect = new Rect
                     {
-                        x = rect.xMax - CategoryIconSize - IconMargin,
+                        x = rect.xMax - CategoryIconSize,
                         y = rect.y + (rect.height - CategoryIconSize) / 2f,
                         width = CategoryIconSize,
                         height = CategoryIconSize
