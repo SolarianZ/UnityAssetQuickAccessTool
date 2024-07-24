@@ -28,8 +28,8 @@ namespace GBG.AssetQuickAccess.Editor
                     SelectCategory(AssetCategory.SceneObject);
                 }
 
-                if (GUILayout.Toggle(LocalCache.SelectedCategories == AssetCategory.ExternalFile ||
-                        LocalCache.SelectedCategories == AssetCategory.Url, _toolbarCategoryNames[3]))
+                if (GUILayout.Toggle((LocalCache.SelectedCategories & AssetCategory.ExternalFile) != 0 ||
+                        (LocalCache.SelectedCategories & AssetCategory.Url) != 0, _toolbarCategoryNames[3]))
                 {
                     SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url);
                 }
