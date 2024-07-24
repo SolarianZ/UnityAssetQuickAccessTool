@@ -24,7 +24,7 @@ namespace GBG.AssetQuickAccess.Editor
         private TextField _urlField;
 
 
-        private void CreateGUI()
+        private void OnEnable()
         {
             rootVisualElement.style.paddingLeft = 4;
             rootVisualElement.style.paddingRight = 4;
@@ -71,7 +71,9 @@ namespace GBG.AssetQuickAccess.Editor
             };
             horizontal.Add(cancelButton);
 
-            _urlField.Focus();
+            // _urlField.Focus();
+            VisualElement textInput = _urlField.Q(className: TextField.inputUssClassName);
+            _urlField.schedule.Execute(textInput.Focus);
         }
 
         private void HandleKeyUp(KeyUpEvent evt)

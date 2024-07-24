@@ -190,32 +190,32 @@ namespace GBG.AssetQuickAccess.Editor
             LocalCache.ForceSave();
         }
 
-        private void OnLeftClickAssetListItem(AssetHandle handle) { EditorGUIUtility.PingObject(handle.Asset); }
+        private void OnLeftClickAssetListItem(AssetHandle handle) { handle.PingAsset(); }
 
-        private void OnLeftDoubleClickAssetListItem(AssetHandle handle) { AssetDatabase.OpenAsset(handle.Asset); }
+        private void OnLeftDoubleClickAssetListItem(AssetHandle handle) { handle.OpenAsset(); }
 
-        private void OnRightClickAssetListItem(AssetHandle assetHandle)
+        private void OnRightClickAssetListItem(AssetHandle handle)
         {
-            switch (assetHandle.Category)
+            switch (handle.Category)
             {
                 case AssetCategory.ProjectAsset:
-                    ShowProjectAssetContextMenu(assetHandle);
+                    ShowProjectAssetContextMenu(handle);
                     break;
 
                 case AssetCategory.SceneObject:
-                    ShowSceneObjectContextMenu(assetHandle);
+                    ShowSceneObjectContextMenu(handle);
                     break;
 
                 case AssetCategory.ExternalFile:
-                    ShowExternalFileContextMenu(assetHandle);
+                    ShowExternalFileContextMenu(handle);
                     break;
 
                 case AssetCategory.Url:
-                    ShowUrlContextMenu(assetHandle);
+                    ShowUrlContextMenu(handle);
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(assetHandle.Category), assetHandle.Category, null);
+                    throw new ArgumentOutOfRangeException(nameof(handle.Category), handle.Category, null);
             }
         }
 
