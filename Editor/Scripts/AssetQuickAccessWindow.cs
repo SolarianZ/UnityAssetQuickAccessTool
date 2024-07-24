@@ -34,7 +34,7 @@ namespace GBG.AssetQuickAccess.Editor
             HashSet<string> stringHashSet = null; // For paths and urls
             if (paths != null)
             {
-                stringHashSet = new HashSet<string>(paths?.Count ?? 0);
+                stringHashSet = new HashSet<string>(paths.Count);
                 foreach (string rawPath in paths)
                 {
                     string path = rawPath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -139,12 +139,6 @@ namespace GBG.AssetQuickAccess.Editor
             EditorApplication.hierarchyChanged -= SetViewDirty;
             EditorApplication.hierarchyChanged += SetViewDirty;
 
-            /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
-             * // Fix #5
-             * EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-             * EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-             */
-
 
             #region Remove Old Version Items
 
@@ -173,11 +167,6 @@ namespace GBG.AssetQuickAccess.Editor
 
             AssemblyReloadEvents.afterAssemblyReload -= SetViewDirtyDelay;
             EditorApplication.hierarchyChanged -= SetViewDirty;
-
-            /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
-            * // Fix #5
-            * EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-            */
         }
 
         private void OnFocus()
@@ -188,9 +177,9 @@ namespace GBG.AssetQuickAccess.Editor
             }
         }
 
-        private void ShowButton(Rect position)
+        private void ShowButton(Rect pos)
         {
-            if (GUI.Button(position, EditorGUIUtility.IconContent("_Help"), GUI.skin.FindStyle("IconButton")))
+            if (GUI.Button(pos, EditorGUIUtility.IconContent("_Help"), GUI.skin.FindStyle("IconButton")))
             {
                 Application.OpenURL("https://github.com/SolarianZ/UnityAssetQuickAccessTool");
             }
@@ -230,7 +219,10 @@ namespace GBG.AssetQuickAccess.Editor
                 value = LocalCache.SelectedCategories == AssetCategory.None,
                 style = { marginRight = CategoryButtonMarginRight }
             };
-            allCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.None); });
+            allCategoryButton.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue) SelectCategory(AssetCategory.None);
+            });
             radioButtonGroup.Add(allCategoryButton);
 
             // Project Assets Category
@@ -240,7 +232,10 @@ namespace GBG.AssetQuickAccess.Editor
                 value = LocalCache.SelectedCategories == AssetCategory.ProjectAsset,
                 style = { marginRight = CategoryButtonMarginRight }
             };
-            assetsCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.ProjectAsset); });
+            assetsCategoryButton.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue) SelectCategory(AssetCategory.ProjectAsset);
+            });
             radioButtonGroup.Add(assetsCategoryButton);
 
             // Scene Objects Category
@@ -250,7 +245,10 @@ namespace GBG.AssetQuickAccess.Editor
                 value = LocalCache.SelectedCategories == AssetCategory.SceneObject,
                 style = { marginRight = CategoryButtonMarginRight }
             };
-            sceneObjectsCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.SceneObject); });
+            sceneObjectsCategoryButton.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue) SelectCategory(AssetCategory.SceneObject);
+            });
             radioButtonGroup.Add(sceneObjectsCategoryButton);
 
             // External Files Category
@@ -260,7 +258,10 @@ namespace GBG.AssetQuickAccess.Editor
                 value = LocalCache.SelectedCategories == (AssetCategory.ExternalFile | AssetCategory.Url),
                 style = { marginRight = CategoryButtonMarginRight }
             };
-            externalFilesCategoryButton.RegisterValueChangedCallback(evt => { if (evt.newValue) SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url); });
+            externalFilesCategoryButton.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue) SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url);
+            });
             radioButtonGroup.Add(externalFilesCategoryButton);
 
             // Toolbar Menu
@@ -348,21 +349,6 @@ namespace GBG.AssetQuickAccess.Editor
             SetViewDirty();
         }
 
-        /** After changing the storage method of local data to ScriptableSingleton<T>, this process is no longer necessary
-         * // Fix #5
-         * private void OnPlayModeStateChanged(PlayModeStateChange change)
-         * {
-         *     // Fix #4
-         *     // When entering PlayMode, the window will execute OnEnable and reload the data object.
-         *     // When exiting PlayMode, the data object is destroyed, but OnEnable is not executed.
-         *     // Therefore, we need to reassign the data source.
-         *     if (change == PlayModeStateChange.EnteredEditMode)
-         *     {
-         *         _assetListView.itemsSource = AssetQuickAccessLocalCache.instance.AssetHandles;
-         *     }
-         * }
-        */
-
         private void SetViewDirty()
         {
             if (hasFocus)
@@ -392,8 +378,8 @@ namespace GBG.AssetQuickAccess.Editor
         private void RemoveAllItems()
         {
             if (EditorUtility.DisplayDialog("Warning",
-                "You are about to remove all items. This action cannot be undone.\nDo you want to remove?",
-                "Remove", "Cancel"))
+                    "You are about to remove all items. This action cannot be undone.\nDo you want to remove?",
+                    "Remove", "Cancel"))
             {
                 LocalCache.RemoveAllAssets();
                 SetViewDirty();

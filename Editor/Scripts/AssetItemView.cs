@@ -17,7 +17,6 @@ namespace GBG.AssetQuickAccess.Editor
         private Image _assetIcon;
         private Image _categoryIcon;
         private Label _label;
-        private MouseAction _mouseAction = MouseAction.None;
         private double _lastClickTime;
 
         public event Action<AssetHandle> OnWantsToRemoveAssetItem;
@@ -125,7 +124,6 @@ namespace GBG.AssetQuickAccess.Editor
                     break;
 
                 case AssetCategory.Url:
-                    string url = AssetHandle.GetAssetPath();
                     assetIconTex = GetUrlTexture();
                     categoryIconTex = assetIconTex;
                     categoryIconTooltip = "URL";
@@ -143,6 +141,7 @@ namespace GBG.AssetQuickAccess.Editor
                     CreateCategoryIcon();
                 }
 
+                Assert.IsTrue(_categoryIcon != null);
                 _categoryIcon.tooltip = categoryIconTooltip;
                 _categoryIcon.image = categoryIconTex;
                 _categoryIcon.style.display = DisplayStyle.Flex;
@@ -278,7 +277,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
 #endif
         }
 
@@ -315,7 +314,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
 #endif
         }
 
@@ -353,7 +352,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
 #endif
         }
 
@@ -372,7 +371,7 @@ namespace GBG.AssetQuickAccess.Editor
             menu.AddItem("Open", false, AssetHandle.OpenAsset);
             menu.AddItem("Copy URL", false, AssetHandle.CopyPathToSystemBuffer);
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
 #endif
         }
 
@@ -478,15 +477,5 @@ namespace GBG.AssetQuickAccess.Editor
         }
 
         #endregion
-
-
-        enum MouseAction : byte
-        {
-            None,
-            Click,
-            DoubleClick,
-            ContextClick,
-            Drag,
-        }
     }
 }
