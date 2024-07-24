@@ -260,7 +260,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
         }
 
         private void ShowSceneObjectContextMenu(Vector2 mousePosition)
@@ -280,7 +280,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
         }
 
         private void ShowExternalFileContextMenu(Vector2 mousePosition)
@@ -301,7 +301,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
         }
 
         private void ShowUrlContextMenu(Vector2 mousePosition)
@@ -312,7 +312,7 @@ namespace GBG.AssetQuickAccess.Editor
             menu.AddItem("Open", false, AssetHandle.OpenAsset);
             menu.AddItem("Copy URL", false, AssetHandle.CopyPathToSystemBuffer);
             menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this);
+            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
         }
 
 
