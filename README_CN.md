@@ -4,7 +4,7 @@
 
 将常用的Unity对象和外部文件/文件夹/网址固定到独立的编辑器窗口中。Unity Favorites功能的增强版。
 
-此版本专为Unity 2019.4 开发。若Unity版本为2021.3+，请使用 v3.x 版本。
+此版本专为Unity 2019.4开发。若Unity版本为2021.3+，请使用 v3+ 版本。
 
 ![Asset Quick Access Window](./Documents~/imgs/img_sample_asset_quick_access_window.png)
 
@@ -24,9 +24,9 @@
 
 ## 支持的Unity版本
 
-Unity 2021.3 或更新版本。
+Unity 2019.4 或更新版本。
 
-Unity 2017.4 - Unity 2021.2请使用 [1.2.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.2.1) 版本。
+Unity 2017.4 - Unity 2019.3请使用 [v1.2.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.2.1) 版本。
 
 ## 安装
 

@@ -4,7 +4,7 @@
 
 Pin frequently used Unity objects and external files/folders/urls to a separate editor window. An enhanced version of the Unity's Favorites feature.
 
-This version is specifically developed for Unity 2019.4. If you are using Unity 2021.3 and later versions, please use version v3.x .
+This version is specifically developed for Unity 2019.4. If you are using Unity 2021.3 and later versions, please use version v3+ .
 
 ![Asset Quick Access Window](./Documents~/imgs/img_sample_asset_quick_access_window.png)
 
@@ -24,9 +24,9 @@ This version is specifically developed for Unity 2019.4. If you are using Unity 
 
 ## Supported Unity Version
 
-Unity 2021.3 and later.
+Unity 2019.4 and later.
 
-For Unity 2017.4 - Unity 2021.2, please use version [1.2.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.2.1).
+For Unity 2017.4 - Unity 2019.3, please use version [v1.2.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.2.1).
 
 ## Installation
 
