@@ -18,7 +18,6 @@ namespace GBG.AssetQuickAccess.Editor
         private ReorderableList _assetList;
         private Vector2 _assetListScrollPos;
         private GUIStyle _assetItemStyle;
-        private GUIStyle _assetCategoryTooltipStyle;
 
         private double _lastClickAssetTime;
         private string _lastClickedAsset;
@@ -408,7 +407,6 @@ namespace GBG.AssetQuickAccess.Editor
         private void ClearListContentGuiStyleCaches()
         {
             _assetItemStyle = null;
-            _assetCategoryTooltipStyle = null;
         }
 
         enum MouseAction : byte
