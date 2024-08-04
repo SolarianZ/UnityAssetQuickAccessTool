@@ -244,6 +244,8 @@ namespace GBG.AssetQuickAccess.Editor
         {
             Assert.IsTrue(AssetHandle.Category == AssetCategory.ProjectAsset);
 
+            // MEMO Unity BUG: https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-77265
+            // Custom contextual menu is broken or displayed wrongly when it is created with GenericDropdownMenu UIElement
 #if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             if (AssetHandle.Asset)
@@ -285,6 +287,8 @@ namespace GBG.AssetQuickAccess.Editor
         {
             Assert.IsTrue(AssetHandle.Category == AssetCategory.SceneObject);
 
+            // MEMO Unity BUG: https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-77265
+            // Custom contextual menu is broken or displayed wrongly when it is created with GenericDropdownMenu UIElement
 #if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             if (AssetHandle.Asset)
@@ -323,6 +327,9 @@ namespace GBG.AssetQuickAccess.Editor
             Assert.IsTrue(AssetHandle.Category == AssetCategory.ExternalFile);
 
             string path = AssetHandle.GetAssetPath();
+
+            // MEMO Unity BUG: https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-77265
+            // Custom contextual menu is broken or displayed wrongly when it is created with GenericDropdownMenu UIElement
 #if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             if (File.Exists(path) || Directory.Exists(path))
@@ -360,6 +367,8 @@ namespace GBG.AssetQuickAccess.Editor
         {
             Assert.IsTrue(AssetHandle.Category == AssetCategory.Url);
 
+            // MEMO Unity BUG: https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-77265
+            // Custom contextual menu is broken or displayed wrongly when it is created with GenericDropdownMenu UIElement
 #if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             genericMenu.AddItem(new GUIContent("Open"), false, AssetHandle.OpenAsset);
