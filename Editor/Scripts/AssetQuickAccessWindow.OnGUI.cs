@@ -51,5 +51,12 @@ namespace GBG.AssetQuickAccess.Editor
                 }
             }
         }
+
+        private void ClearAllGuiStytleCaches()
+        {
+            ClearToolbarGuiStyleCaches();
+            ClearListContentGuiStyleCaches();
+            ClearBottomTipsGuiStytleCaches();
+        }
     }
 }

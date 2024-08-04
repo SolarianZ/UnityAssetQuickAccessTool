@@ -68,5 +68,10 @@ namespace GBG.AssetQuickAccess.Editor
                 }
             }
         }
+
+        private void ClearToolbarGuiStyleCaches()
+        {
+            _toolbarMenuStyle = null;
+        }
     }
 }

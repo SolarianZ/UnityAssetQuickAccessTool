@@ -20,5 +20,10 @@ namespace GBG.AssetQuickAccess.Editor
 
             GUILayout.Label("Drag the asset here to add a new item.", _bottomTipsStyle);
         }
+
+        private void ClearBottomTipsGuiStytleCaches()
+        {
+            _bottomTipsStyle = null;
+        }
     }
 }

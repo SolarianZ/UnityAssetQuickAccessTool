@@ -53,7 +53,10 @@ namespace GBG.AssetQuickAccess.Editor
         {
             Rect bgRect = new Rect()
             {
-                x = rect.x + 2, y = rect.y + 1, width = rect.width - 4, height = rect.height - 2,
+                x = rect.x + 2,
+                y = rect.y + 1,
+                width = rect.width - 4,
+                height = rect.height - 2,
             };
             Color guiColor = GUI.color;
             GUI.color = rect.Contains(Event.current.mousePosition) ? Color.cyan : guiColor;
@@ -400,6 +403,12 @@ namespace GBG.AssetQuickAccess.Editor
 
                     break;
             }
+        }
+
+        private void ClearListContentGuiStyleCaches()
+        {
+            _assetItemStyle = null;
+            _assetCategoryTooltipStyle = null;
         }
 
         enum MouseAction : byte

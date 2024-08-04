@@ -151,6 +151,12 @@ namespace GBG.AssetQuickAccess.Editor
             EditorApplication.hierarchyChanged -= SetViewDirty;
         }
 
+        private void OnFocus()
+        {
+            // FIX: Gui styles may be lost
+            ClearAllGuiStytleCaches();
+        }
+
         private void ShowButton(Rect position)
         {
             if (GUI.Button(position, EditorGUIUtility.IconContent("_Help"), GUI.skin.FindStyle("IconButton")))
