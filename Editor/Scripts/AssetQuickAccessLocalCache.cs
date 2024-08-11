@@ -4,6 +4,7 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UObject = UnityEngine.Object;
+using UDebug = UnityEngine.Debug;
 
 namespace GBG.AssetQuickAccess.Editor
 {
@@ -228,7 +229,7 @@ namespace GBG.AssetQuickAccess.Editor
             _assetHandles.Clear();
             ForceSave();
 
-            Debug.Log("All asset quick access items removed.");
+            UDebug.Log("<b>[Asset Quick Access]</b> All asset quick access items removed.");
         }
 
         public void ForceSave()

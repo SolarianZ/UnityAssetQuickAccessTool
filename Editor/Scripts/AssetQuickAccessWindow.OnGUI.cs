@@ -17,7 +17,7 @@ namespace GBG.AssetQuickAccess.Editor
 
             DrawToolbar();
             DrawListContent();
-            DrawBottomTips();
+            DrawBottomContents();
 
             // ProcessDragAndDropOut();
             ProcessDragAndDropIn();
