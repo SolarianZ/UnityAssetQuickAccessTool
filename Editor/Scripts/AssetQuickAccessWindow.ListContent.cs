@@ -61,6 +61,7 @@ namespace GBG.AssetQuickAccess.Editor
             GUI.color = rect.Contains(Event.current.mousePosition) ? Color.cyan : guiColor;
             GUI.Box(bgRect, (string)null);
             GUI.color = guiColor;
+            Repaint();
         }
 
         private void DrawAssetListItem(Rect rect, int index, bool isActive, bool isFocused)
@@ -404,7 +405,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
         }
 
-        private void ClearListContentGuiStyleCaches()
+        private void ClearListContentGuiCaches()
         {
             _assetItemStyle = null;
         }

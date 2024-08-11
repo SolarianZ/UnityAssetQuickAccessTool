@@ -65,12 +65,14 @@ namespace GBG.AssetQuickAccess.Editor
                     {
                         normal = { background = Texture2D.grayTexture }
                     });
+                    Repaint();
                 }
             }
         }
 
-        private void ClearToolbarGuiStyleCaches()
+        private void ClearToolbarGuiCaches()
         {
+            _toolbarMenuContent = null;
             _toolbarMenuStyle = null;
         }
     }

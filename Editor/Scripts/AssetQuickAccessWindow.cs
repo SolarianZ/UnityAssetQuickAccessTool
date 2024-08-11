@@ -154,7 +154,7 @@ namespace GBG.AssetQuickAccess.Editor
         private void OnFocus()
         {
             // FIX: Gui styles may be lost
-            ClearAllGuiStytleCaches();
+            ClearAllGuiCaches();
         }
 
         private void ShowButton(Rect position)
