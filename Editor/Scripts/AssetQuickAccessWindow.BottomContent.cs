@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -95,7 +94,6 @@ namespace GBG.AssetQuickAccess.Editor
                 if (result.Count > 1)
                 {
                     ShowNotification(new GUIContent("Found multiple matching Scene objects.\nPlease check the Console log."));
-                    StringBuilder pathBuilder = new StringBuilder();
                     foreach (Transform target in result)
                     {
                         UDebug.Log($"<b>[Asset Quick Access]</b> Found '{_assetIdentifier}' in scene '{target.gameObject.scene.name}'.", target);
@@ -106,7 +104,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             // Not found
-            ShowNotification(new GUIContent($"Can not find asset with guid or path '{_assetIdentifier}'."));
+            ShowNotification(new GUIContent($"Can not find asset with guid or path:\n{_assetIdentifier}"));
         }
 
         private void ClearBottomTipsGuiCaches()
