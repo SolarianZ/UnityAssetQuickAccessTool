@@ -159,7 +159,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void GetWebsiteTitle()
         {
-            Assert.IsTrue(_getTitleTask == null);
+            Assert.IsTrue(_getTitleHttpClient == null && _getTitleTask == null);
 
             _getTitleStatusLabel.text = null;
 
@@ -181,29 +181,27 @@ namespace GBG.AssetQuickAccess.Editor
             _getTitleStatusLabel.text = $"Getting title from {_getTitleUrl} ...";
 
             _getTitleHttpClient = new HttpClient();
+            _getTitleHttpClient.Timeout = TimeSpan.FromSeconds(_getTitleTimeout);
+            try
             {
-                _getTitleHttpClient.Timeout = TimeSpan.FromSeconds(_getTitleTimeout);
-                try
-                {
-                    _getTitleTask = _getTitleHttpClient.GetStringAsync(_getTitleUrl);
-                }
-                catch (Exception e)
-                {
-                    _getTitleStatusLabel.style.color = GetTextColor(true);
-                    _getTitleStatusLabel.text = e.Message;
+                _getTitleTask = _getTitleHttpClient.GetStringAsync(_getTitleUrl);
+            }
+            catch (Exception e)
+            {
+                _getTitleStatusLabel.style.color = GetTextColor(true);
+                _getTitleStatusLabel.text = e.Message;
 
-                    _getTitleHttpClient.Dispose();
-                    _getTitleHttpClient = null;
-                    _getTitleTask = null;
+                _getTitleHttpClient.Dispose();
+                _getTitleHttpClient = null;
+                _getTitleTask = null;
 
-                    UDebug.LogException(e);
-                }
+                UDebug.LogException(e);
             }
         }
 
         private void UpdateGetWebsiteTitle()
         {
-            if (_getTitleTask == null)
+            if (_getTitleHttpClient == null || _getTitleTask == null)
             {
                 return;
             }
@@ -232,7 +230,7 @@ namespace GBG.AssetQuickAccess.Editor
 
                 case TaskStatus.Canceled:
                     _getTitleStatusLabel.style.color = GetTextColor(false);
-                    _getTitleStatusLabel.text = "Get the website title canceled";
+                    _getTitleStatusLabel.text = "Timeout";
 
                     _getTitleHttpClient.Dispose();
                     _getTitleHttpClient = null;
