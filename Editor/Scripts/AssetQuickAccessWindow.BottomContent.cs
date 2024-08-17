@@ -58,6 +58,15 @@ namespace GBG.AssetQuickAccess.Editor
             if (string.IsNullOrEmpty(filePath))
             {
                 filePath = _assetIdentifier;
+                if (_assetIdentifier.EndsWith("/") || _assetIdentifier.EndsWith("\\"))
+                {
+                    filePath = _assetIdentifier.Remove(_assetIdentifier.Length - 1);
+                    if (string.IsNullOrEmpty(filePath))
+                    {
+                        ShowNotification(new GUIContent($"Can not find asset with guid or path:\n{_assetIdentifier}"));
+                        return;
+                    }
+                }
             }
 
             UObject asset = AssetDatabase.LoadAssetAtPath<UObject>(filePath);
