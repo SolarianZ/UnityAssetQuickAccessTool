@@ -143,7 +143,7 @@ namespace GBG.AssetQuickAccess.Editor
             return added;
         }
 
-        public bool AddUrls(HashSet<string> urls, ref StringBuilder errorsBuilder, bool clearErrorsBuilder)
+        public bool AddUrls(IEnumerable<(string url, string title)> urlInfos, ref StringBuilder errorsBuilder, bool clearErrorsBuilder)
         {
             if (clearErrorsBuilder)
             {
@@ -151,16 +151,16 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             bool added = false;
-            foreach (string url in urls)
+            foreach ((string url, string title) urlInfo in urlInfos)
             {
-                if (_assetHandles.Any(h => h.GetAssetPath() == url))
+                if (_assetHandles.Any(h => h.GetAssetPath() == urlInfo.url))
                 {
                     errorsBuilder ??= new StringBuilder();
                     errorsBuilder.AppendLine("URL already exists.");
                     continue;
                 }
 
-                AssetHandle handle = AssetHandle.CreateFromUrl(url, out string error);
+                AssetHandle handle = AssetHandle.CreateFromUrl(urlInfo.url, urlInfo.title, out string error);
                 if (!string.IsNullOrEmpty(error))
                 {
                     errorsBuilder ??= new StringBuilder();
