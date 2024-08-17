@@ -109,12 +109,13 @@ namespace GBG.AssetQuickAccess.Editor
             return externalFileHandle;
         }
 
-        public static AssetHandle CreateFromUrl(string url, out string error)
+        public static AssetHandle CreateFromUrl(string url, string title, out string error)
         {
             AssetHandle urlHandle = new AssetHandle
             {
                 _category = AssetCategory.Url,
                 _guid = url,
+                _fallbackName = title ?? string.Empty,
             };
 
             error = null;
@@ -379,7 +380,14 @@ namespace GBG.AssetQuickAccess.Editor
                     }
 
                 case AssetCategory.Url:
-                    return _guid;
+                    if (string.IsNullOrEmpty(_fallbackName))
+                    {
+                        return _guid;
+                    }
+                    else
+                    {
+                        return $"{_fallbackName}    <i>({_guid})</i>";
+                    }
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Category), Category, null);

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
@@ -20,7 +21,7 @@ namespace GBG.AssetQuickAccess.Editor
             GetWindow<AssetQuickAccessWindow>();
         }
 
-        public static void AddItems(IList<UObject> objects, IList<string> paths, IList<string> urls)
+        public static void AddItems(IList<UObject> objects, IList<string> paths, IList<(string url, string title)> urlInfos)
         {
             HashSet<UObject> objectHashSet = new HashSet<UObject>();
             if (objects != null)
@@ -28,10 +29,10 @@ namespace GBG.AssetQuickAccess.Editor
                 objectHashSet = new HashSet<UObject>(objects);
             }
 
-            HashSet<string> stringHashSet = null; // For paths and urls
+            HashSet<string> pathHashSet = null;
             if (paths != null)
             {
-                stringHashSet = new HashSet<string>();
+                pathHashSet = new HashSet<string>();
                 foreach (string rawPath in paths)
                 {
                     string path = rawPath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -52,32 +53,31 @@ namespace GBG.AssetQuickAccess.Editor
                     }
                     else
                     {
-                        stringHashSet.Add(rawPath);
+                        pathHashSet.Add(rawPath);
                     }
                 }
             }
 
             StringBuilder errorsBuilder = null;
             bool added = AssetQuickAccessLocalCache.instance.AddObjects(objectHashSet, ref errorsBuilder, false);
-            if (stringHashSet != null)
+            if (pathHashSet != null)
             {
-                added |= AssetQuickAccessLocalCache.instance.AddExternalPaths(stringHashSet, ref errorsBuilder, false);
+                added |= AssetQuickAccessLocalCache.instance.AddExternalPaths(pathHashSet, ref errorsBuilder, false);
             }
 
-            if (urls != null)
+            if (urlInfos != null)
             {
-                stringHashSet?.Clear();
-                if (stringHashSet == null)
+                Dictionary<string, (string url, string title)> urlDict = new Dictionary<string, (string url, string title)>();
+                for (int i = 0; i < urlInfos.Count; i++)
                 {
-                    stringHashSet = new HashSet<string>();
+                    string url = urlInfos[i].url;
+                    if (!urlDict.ContainsKey(url))
+                    {
+                        urlDict.Add(url, urlInfos[i]);
+                    }
                 }
 
-                for (int i = 0; i < urls.Count; i++)
-                {
-                    stringHashSet.Add(urls[i]);
-                }
-
-                added |= AssetQuickAccessLocalCache.instance.AddUrls(stringHashSet, ref errorsBuilder, false);
+                added |= AssetQuickAccessLocalCache.instance.AddUrls(urlDict.Values, ref errorsBuilder, false);
             }
 
             if (_instance)
@@ -274,14 +274,14 @@ namespace GBG.AssetQuickAccess.Editor
             UrlEditWindow.Open(center, AddUrl);
         }
 
-        private void AddUrl(string url)
+        private void AddUrl(string url, string title)
         {
             if (string.IsNullOrWhiteSpace(url))
             {
                 return;
             }
 
-            AddItems(null, null, new string[] { url });
+            AddItems(null, null, new (string url, string title)[] { (url, title) });
         }
 
         #endregion
