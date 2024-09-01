@@ -254,6 +254,7 @@ namespace GBG.AssetQuickAccess.Editor
                 genericMenu.AddItem(new GUIContent("Copy Path"), false, AssetHandle.CopyPathToSystemBuffer);
                 genericMenu.AddItem(new GUIContent("Copy Guid"), false, AssetHandle.CopyGuidToSystemBuffer);
                 genericMenu.AddItem(new GUIContent("Copy Type"), false, AssetHandle.CopyTypeFullNameToSystemBuffer);
+                genericMenu.AddItem(new GUIContent("Copy Instance Id"), false, AssetHandle.CopyInstanceIdToSystemBuffer);
                 genericMenu.AddItem(new GUIContent("Show in Folder"), false, AssetHandle.ShowInFolder);
             }
             else
@@ -271,6 +272,7 @@ namespace GBG.AssetQuickAccess.Editor
                 menu.AddItem("Copy Path", false, AssetHandle.CopyPathToSystemBuffer);
                 menu.AddItem("Copy Guid", false, AssetHandle.CopyGuidToSystemBuffer);
                 menu.AddItem("Copy Type", false, AssetHandle.CopyTypeFullNameToSystemBuffer);
+                menu.AddItem("Copy Instance ID", false, AssetHandle.CopyInstanceIdToSystemBuffer);
                 menu.AddItem("Show in Folder", false, AssetHandle.ShowInFolder);
             }
             else
@@ -296,6 +298,7 @@ namespace GBG.AssetQuickAccess.Editor
                 genericMenu.AddItem(new GUIContent("Open"), false, AssetHandle.OpenAsset);
                 genericMenu.AddItem(new GUIContent("Copy Hierarchy Path"), false, AssetHandle.CopyPathToSystemBuffer);
                 genericMenu.AddItem(new GUIContent("Copy Type"), false, AssetHandle.CopyTypeFullNameToSystemBuffer);
+                genericMenu.AddItem(new GUIContent("Copy Instance Id"), false, AssetHandle.CopyInstanceIdToSystemBuffer);
             }
             else if (AssetHandle.Scene)
             {
@@ -311,6 +314,7 @@ namespace GBG.AssetQuickAccess.Editor
                 menu.AddItem("Open", false, AssetHandle.OpenAsset);
                 menu.AddItem("Copy Hierarchy Path", false, AssetHandle.CopyPathToSystemBuffer);
                 menu.AddItem("Copy Type", false, AssetHandle.CopyTypeFullNameToSystemBuffer);
+                menu.AddItem("Copy Instance ID", false, AssetHandle.CopyInstanceIdToSystemBuffer);
             }
             else if (AssetHandle.Scene)
             {
