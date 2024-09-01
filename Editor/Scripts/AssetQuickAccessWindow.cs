@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -284,6 +283,21 @@ namespace GBG.AssetQuickAccess.Editor
             #endregion
 
 
+            #region Search bar
+
+            ToolbarSearchField searchField = new ToolbarSearchField
+            {
+                style =
+                {
+                    width = StyleKeyword.Auto,
+                }
+            };
+            searchField.RegisterValueChangedCallback(OnSearchContentChanged);
+            rootVisualElement.Add(searchField);
+
+            #endregion
+
+
             DragAndDropInManipulator dndInManipulator = new DragAndDropInManipulator(rootVisualElement);
             dndInManipulator.OnDragAndDrop += (objects, paths) => AddItems(objects, paths, null);
 
@@ -471,6 +485,18 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             AddItems(null, null, new (string url, string title)[] { (url, title) });
+        }
+
+        #endregion
+
+
+        #region Search
+
+        private void OnSearchContentChanged(ChangeEvent<string> evt)
+        {
+            string filter = evt.newValue;
+            // TODO search obejct(path/guid/instance id
+            // TODO filter record items
         }
 
         #endregion
