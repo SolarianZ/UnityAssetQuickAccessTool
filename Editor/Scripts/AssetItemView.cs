@@ -240,13 +240,15 @@ namespace GBG.AssetQuickAccess.Editor
             }
         }
 
+        // The GenericDropdownMenu cannot display beyond the window it is in, and it has bugs in Unity 6000.0.
+        // Therefore, we are using GenericMenu instead.
+        // MEMO Unity BUG: https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-77265
+        // Custom contextual menu is broken or displayed wrongly when it is created with GenericDropdownMenu UIElement
+
         private void ShowProjectAssetContextMenu(Vector2 mousePosition)
         {
             Assert.IsTrue(AssetHandle.Category == AssetCategory.ProjectAsset);
 
-            // MEMO Unity BUG: https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-77265
-            // Custom contextual menu is broken or displayed wrongly when it is created with GenericDropdownMenu UIElement
-#if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             if (AssetHandle.Asset)
             {
@@ -264,34 +266,12 @@ namespace GBG.AssetQuickAccess.Editor
 
             genericMenu.AddItem(new GUIContent("Remove"), false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
             genericMenu.ShowAsContext();
-#else
-            GenericDropdownMenu menu = new GenericDropdownMenu();
-            if (AssetHandle.Asset)
-            {
-                menu.AddItem("Open", false, AssetHandle.OpenAsset);
-                menu.AddItem("Copy Path", false, AssetHandle.CopyPathToSystemBuffer);
-                menu.AddItem("Copy Guid", false, AssetHandle.CopyGuidToSystemBuffer);
-                menu.AddItem("Copy Type", false, AssetHandle.CopyTypeFullNameToSystemBuffer);
-                menu.AddItem("Copy Instance ID", false, AssetHandle.CopyInstanceIdToSystemBuffer);
-                menu.AddItem("Show in Folder", false, AssetHandle.ShowInFolder);
-            }
-            else
-            {
-                menu.AddItem("Copy Guid", false, AssetHandle.CopyGuidToSystemBuffer);
-            }
-
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
-#endif
         }
 
         private void ShowSceneObjectContextMenu(Vector2 mousePosition)
         {
             Assert.IsTrue(AssetHandle.Category == AssetCategory.SceneObject);
 
-            // MEMO Unity BUG: https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-77265
-            // Custom contextual menu is broken or displayed wrongly when it is created with GenericDropdownMenu UIElement
-#if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             if (AssetHandle.Asset)
             {
@@ -307,23 +287,6 @@ namespace GBG.AssetQuickAccess.Editor
 
             genericMenu.AddItem(new GUIContent("Remove"), false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
             genericMenu.ShowAsContext();
-#else
-            GenericDropdownMenu menu = new GenericDropdownMenu();
-            if (AssetHandle.Asset)
-            {
-                menu.AddItem("Open", false, AssetHandle.OpenAsset);
-                menu.AddItem("Copy Hierarchy Path", false, AssetHandle.CopyPathToSystemBuffer);
-                menu.AddItem("Copy Type", false, AssetHandle.CopyTypeFullNameToSystemBuffer);
-                menu.AddItem("Copy Instance ID", false, AssetHandle.CopyInstanceIdToSystemBuffer);
-            }
-            else if (AssetHandle.Scene)
-            {
-                menu.AddItem("Open in Scene", false, AssetHandle.OpenAsset);
-            }
-
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
-#endif
         }
 
         private void ShowExternalFileContextMenu(Vector2 mousePosition)
@@ -331,10 +294,6 @@ namespace GBG.AssetQuickAccess.Editor
             Assert.IsTrue(AssetHandle.Category == AssetCategory.ExternalFile);
 
             string path = AssetHandle.GetAssetPath();
-
-            // MEMO Unity BUG: https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-77265
-            // Custom contextual menu is broken or displayed wrongly when it is created with GenericDropdownMenu UIElement
-#if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             if (File.Exists(path) || Directory.Exists(path))
             {
@@ -349,43 +308,17 @@ namespace GBG.AssetQuickAccess.Editor
 
             genericMenu.AddItem(new GUIContent("Remove"), false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
             genericMenu.ShowAsContext();
-#else
-            GenericDropdownMenu menu = new GenericDropdownMenu();
-            if (File.Exists(path) || Directory.Exists(path))
-            {
-                menu.AddItem("Open", false, AssetHandle.OpenAsset);
-                menu.AddItem("Copy Path", false, AssetHandle.CopyPathToSystemBuffer);
-                menu.AddItem("Show in Folder", false, AssetHandle.ShowInFolder);
-            }
-            else
-            {
-                menu.AddItem("Copy Path", false, AssetHandle.CopyPathToSystemBuffer);
-            }
-
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
-#endif
         }
 
         private void ShowUrlContextMenu(Vector2 mousePosition)
         {
             Assert.IsTrue(AssetHandle.Category == AssetCategory.Url);
 
-            // MEMO Unity BUG: https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-77265
-            // Custom contextual menu is broken or displayed wrongly when it is created with GenericDropdownMenu UIElement
-#if UNITY_6000_0_OR_NEWER
             GenericMenu genericMenu = new GenericMenu();
             genericMenu.AddItem(new GUIContent("Open"), false, AssetHandle.OpenAsset);
             genericMenu.AddItem(new GUIContent("Copy URL"), false, AssetHandle.CopyPathToSystemBuffer);
             genericMenu.AddItem(new GUIContent("Remove"), false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
             genericMenu.ShowAsContext();
-#else
-            GenericDropdownMenu menu = new GenericDropdownMenu();
-            menu.AddItem("Open", false, AssetHandle.OpenAsset);
-            menu.AddItem("Copy URL", false, AssetHandle.CopyPathToSystemBuffer);
-            menu.AddItem("Remove", false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
-            menu.DropDown(new Rect(mousePosition, Vector2.zero), this, false);
-#endif
         }
 
 
