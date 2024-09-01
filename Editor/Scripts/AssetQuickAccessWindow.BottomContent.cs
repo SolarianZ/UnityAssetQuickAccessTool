@@ -39,20 +39,30 @@ namespace GBG.AssetQuickAccess.Editor
         private void DrawFindObjectContent()
         {
             GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Path/Guid", GUILayout.Width(60));
+            EditorGUILayout.LabelField("Path/Guid/InstanceId", GUILayout.Width(120));
             _assetIdentifier = EditorGUILayout.TextField(_assetIdentifier);
             EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(_assetIdentifier));
             if (GUILayout.Button("Find", GUILayout.Width(60)))
             {
-                FindObjectByPathOrGuid();
+                FindObject();
             }
             EditorGUI.EndDisabledGroup();
             GUILayout.EndHorizontal();
         }
 
-        private void FindObjectByPathOrGuid()
+        private void FindObject()
         {
             Assert.IsTrue(!string.IsNullOrEmpty(_assetIdentifier));
+
+            if (int.TryParse(_assetIdentifier, out int instanceId))
+            {
+                UObject obj = EditorUtility.InstanceIDToObject(instanceId);
+                if (obj)
+                {
+                    EditorGUIUtility.PingObject(obj);
+                    return;
+                }
+            }
 
             string filePath = AssetDatabase.GUIDToAssetPath(_assetIdentifier);
             if (string.IsNullOrEmpty(filePath))
