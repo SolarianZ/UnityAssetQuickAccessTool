@@ -252,6 +252,11 @@ namespace GBG.AssetQuickAccess.Editor
             GUIUtility.systemCopyBuffer = GetAssetTypeFullName();
         }
 
+        public void CopyInstanceIdToSystemBuffer()
+        {
+            GUIUtility.systemCopyBuffer = GetAssetInstanceId().ToString();
+        }
+
         public string GetAssetName()
         {
             switch (Category)
@@ -333,7 +338,29 @@ namespace GBG.AssetQuickAccess.Editor
                     return null;
 
                 case AssetCategory.ExternalFile:
+                case AssetCategory.Url:
                     return null;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(Category), Category, null);
+            }
+        }
+
+        public int GetAssetInstanceId()
+        {
+            switch (Category)
+            {
+                case AssetCategory.ProjectAsset:
+                case AssetCategory.SceneObject:
+                    if (_asset)
+                    {
+                        return _asset.GetInstanceID();
+                    }
+                    return 0;
+
+                case AssetCategory.ExternalFile:
+                case AssetCategory.Url:
+                    return 0;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Category), Category, null);

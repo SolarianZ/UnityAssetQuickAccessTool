@@ -233,6 +233,7 @@ namespace GBG.AssetQuickAccess.Editor
                 genericMenu.AddItem(new GUIContent("Copy Path"), false, assetHandle.CopyPathToSystemBuffer);
                 genericMenu.AddItem(new GUIContent("Copy Guid"), false, assetHandle.CopyGuidToSystemBuffer);
                 genericMenu.AddItem(new GUIContent("Copy Type"), false, assetHandle.CopyTypeFullNameToSystemBuffer);
+                genericMenu.AddItem(new GUIContent("Copy Instance ID"), false, assetHandle.CopyInstanceIdToSystemBuffer);
                 genericMenu.AddItem(new GUIContent("Show in Folder"), false, assetHandle.ShowInFolder);
             }
             else
@@ -254,6 +255,7 @@ namespace GBG.AssetQuickAccess.Editor
                 genericMenu.AddItem(new GUIContent("Open"), false, assetHandle.OpenAsset);
                 genericMenu.AddItem(new GUIContent("Copy Hierarchy Path"), false, assetHandle.CopyPathToSystemBuffer);
                 genericMenu.AddItem(new GUIContent("Copy Type"), false, assetHandle.CopyTypeFullNameToSystemBuffer);
+                genericMenu.AddItem(new GUIContent("Copy Instance ID"), false, assetHandle.CopyInstanceIdToSystemBuffer);
             }
             else if (assetHandle.Scene)
             {
