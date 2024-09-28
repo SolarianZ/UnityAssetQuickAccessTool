@@ -276,6 +276,7 @@ namespace GBG.AssetQuickAccess.Editor
             };
             toolbarMenu.menu.AppendAction("Add External File", AddExternalFile);
             toolbarMenu.menu.AppendAction("Add External Folder", AddExternalFolder);
+            toolbarMenu.menu.AppendAction("Add Menu Item", AddMenuItemEditor);
             toolbarMenu.menu.AppendAction("Add URL", AddUrlEditor);
             toolbarMenu.menu.AppendSeparator("");
             toolbarMenu.menu.AppendAction("Remove All Items", _ => RemoveAllItems());
@@ -456,11 +457,23 @@ namespace GBG.AssetQuickAccess.Editor
             }
         }
 
+        private void AddMenuItemEditor(DropdownMenuAction action)
+        {
+            Vector2 upperCenter = position.center;
+            upperCenter.y = position.yMin + 50;
+            MenuItemSelectWindow.Open(upperCenter, AddMenuItem);
+        }
+
         private void AddUrlEditor(DropdownMenuAction action)
         {
-            Vector2 center = position.center;
-            center.y = position.yMin + 100;
-            UrlEditWindow.Open(center, AddUrl);
+            Vector2 upperCenter = position.center;
+            upperCenter.y = position.yMin + 100;
+            UrlEditWindow.Open(upperCenter, AddUrl);
+        }
+
+        private void AddMenuItem(string menuPath, string title)
+        {
+            Debug.LogError("TODO: AddMenuItem");
         }
 
         private void AddUrl(string url, string title)

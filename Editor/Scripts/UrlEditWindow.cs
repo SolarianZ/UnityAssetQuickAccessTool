@@ -14,15 +14,15 @@ namespace GBG.AssetQuickAccess.Editor
     {
         public delegate void SubmitTitleHandler(string url, string title);
 
-        public static UrlEditWindow Open(Vector2 centerPosition, SubmitTitleHandler onSubmit)
+        public static UrlEditWindow Open(Vector2 upperCenterPosition, SubmitTitleHandler onSubmit)
         {
             UrlEditWindow window = CreateInstance<UrlEditWindow>();
             window._onSubmit += onSubmit;
 
-            float width = 300;
-            float height = 180;
-            Rect position = new Rect(centerPosition - new Vector2(width / 2, height / 2), default);
-            window.ShowAsDropDown(position, new Vector2(300, 90));
+            float width = 360;
+            float height = 90;
+            Rect position = new Rect(upperCenterPosition - new Vector2(width / 2, 0), default);
+            window.ShowAsDropDown(position, new Vector2(width, height));
             return window;
         }
 
