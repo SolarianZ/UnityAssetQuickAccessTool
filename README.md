@@ -13,6 +13,7 @@ Pin frequently used Unity objects and external files/folders/urls to a separate 
   - Scene objects and components
   - External files and folders
   - External URLs(text content)
+  - Menu items(path)
 - Filter recorded items by category.
 - Quickly locate / open recorded items.
 - Copy the path of recorded items.
@@ -42,7 +43,7 @@ Open the Asset Quick Access window from the menu **Tools/Bamboo/Asset Quick Acce
 - **Left-click** on a recorded item to locate (ping) it in the Editor.
   - If the item is an object or component in a Scene and the Scene is not open, it will locate the containing SceneAsset instead.
   - If the item is an external file or folder, no action will be taken.
-- **Double-click** on a recorded item to open it.
+- **Double-click** on a recorded item to open/execute it.
   - If the item is an object or component in a Scene and the Scene is not open, it will open the containing SceneAsset.
 - **Right-click** on a recorded item to display the operation menu.
 - ~~Enter the asset's guid or path in the **Find Asset** input field to find it~~ (Use Unity's builtin search(`Ctrl K`) instead).
