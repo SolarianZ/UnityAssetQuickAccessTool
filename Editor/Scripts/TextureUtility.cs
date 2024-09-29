@@ -13,6 +13,7 @@ namespace GBG.AssetQuickAccess.Editor
         private static Texture _externalFileTextureCache;
         private static Texture _externalFileTextureSmallCache;
         private static Texture _urlTextureCache;
+        private static Texture _menuItemTextureCache;
         private static Texture _warningTextureCache;
 
         public static Texture GetObjectIcon(AssetHandle assetHandle)
@@ -99,6 +100,16 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             return _urlTextureCache;
+        }
+
+        public static Texture GetMenuItemTexture()
+        {
+            if (!_menuItemTextureCache)
+            {
+                _menuItemTextureCache = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_PlayButton@2x" : "PlayButton@2x");
+            }
+
+            return _menuItemTextureCache;
         }
 
         public static Texture GetWarningTexture()

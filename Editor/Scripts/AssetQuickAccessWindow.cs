@@ -21,7 +21,8 @@ namespace GBG.AssetQuickAccess.Editor
             GetWindow<AssetQuickAccessWindow>();
         }
 
-        public static void AddItems(IList<UObject> objects, IList<string> paths, IList<(string url, string title)> urlInfos)
+        public static void AddItems(IList<UObject> objects, IList<string> paths,
+            IList<(string url, string title)> urlInfos, IList<(string menuPath, string title)> menuItemInfos)
         {
             HashSet<UObject> objectHashSet = new HashSet<UObject>();
             if (objects != null)
@@ -80,6 +81,21 @@ namespace GBG.AssetQuickAccess.Editor
                 added |= AssetQuickAccessLocalCache.instance.AddUrls(urlDict.Values, ref errorsBuilder, false);
             }
 
+            if (menuItemInfos != null)
+            {
+                Dictionary<string, (string menuPath, string title)> menuDict = new Dictionary<string, (string menuPath, string title)>();
+                for (int i = 0; i < menuItemInfos.Count; i++)
+                {
+                    string menuPath = menuItemInfos[i].menuPath;
+                    if (!menuDict.ContainsKey(menuPath))
+                    {
+                        menuDict.Add(menuPath, menuItemInfos[i]);
+                    }
+                }
+
+                added |= AssetQuickAccessLocalCache.instance.AddMenuItems(menuDict.Values, ref errorsBuilder, false);
+            }
+
             if (_instance)
             {
                 if (added)
@@ -100,7 +116,7 @@ namespace GBG.AssetQuickAccess.Editor
 #endif
         public static void AddSelectedObjects()
         {
-            AddItems(Selection.objects, null, null);
+            AddItems(Selection.objects, null, null, null);
         }
 
         [MenuItem("Assets/Bamboo/Add to Asset Quick Access", validate = true)]
@@ -113,7 +129,7 @@ namespace GBG.AssetQuickAccess.Editor
         {
             if (command.context)
             {
-                AddItems(new UObject[] { command.context }, null, null);
+                AddItems(new UObject[] { command.context }, null, null, null);
             }
         }
 #endif
@@ -274,6 +290,13 @@ namespace GBG.AssetQuickAccess.Editor
             UrlEditWindow.Open(center, AddUrl);
         }
 
+        private void AddMenuItemEditor()
+        {
+            Vector2 upperCenter = position.center;
+            upperCenter.y = position.yMin + 50;
+            MenuItemSelectWindow.Open(upperCenter, AddMenuItem);
+        }
+
         private void AddUrl(string url, string title)
         {
             if (string.IsNullOrWhiteSpace(url))
@@ -281,7 +304,17 @@ namespace GBG.AssetQuickAccess.Editor
                 return;
             }
 
-            AddItems(null, null, new (string url, string title)[] { (url, title) });
+            AddItems(null, null, new (string url, string title)[] { (url, title) }, null);
+        }
+
+        private void AddMenuItem(string menuPath, string title)
+        {
+            if (string.IsNullOrWhiteSpace(menuPath))
+            {
+                return;
+            }
+
+            AddItems(null, null, null, new (string menuPath, string title)[] { (menuPath, title) });
         }
 
         #endregion

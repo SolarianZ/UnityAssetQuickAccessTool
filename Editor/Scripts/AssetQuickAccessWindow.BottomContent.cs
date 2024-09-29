@@ -39,7 +39,7 @@ namespace GBG.AssetQuickAccess.Editor
         private void DrawFindObjectContent()
         {
             GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Path/Guid/InstanceId", GUILayout.Width(120));
+            EditorGUILayout.LabelField("Path/Guid/InstanceId", GUILayout.Width(128));
             _assetIdentifier = EditorGUILayout.TextField(_assetIdentifier);
             EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(_assetIdentifier));
             if (GUILayout.Button("Find", GUILayout.Width(60)))

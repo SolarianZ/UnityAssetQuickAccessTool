@@ -10,5 +10,6 @@ namespace GBG.AssetQuickAccess.Editor
         SceneObject = 2,
         ExternalFile = 4,
         Url = 8,
+        MenuItem = 16,
     }
 }

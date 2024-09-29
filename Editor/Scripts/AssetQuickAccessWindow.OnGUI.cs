@@ -47,7 +47,7 @@ namespace GBG.AssetQuickAccess.Editor
 
                 if (!DragGenericData.Equals(DragAndDrop.GetGenericData(DragGenericData)))
                 {
-                    AddItems(DragAndDrop.objectReferences, DragAndDrop.paths, null);
+                    AddItems(DragAndDrop.objectReferences, DragAndDrop.paths, null, null);
                 }
             }
         }

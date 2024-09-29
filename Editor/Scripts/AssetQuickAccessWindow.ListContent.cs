@@ -100,6 +100,13 @@ namespace GBG.AssetQuickAccess.Editor
                     // categoryIconTooltip = "URL";
                     break;
 
+                case AssetCategory.MenuItem:
+                    // string url = assetHandle.GetAssetPath();
+                    assetIconTex = TextureUtility.GetMenuItemTexture();
+                    categoryIconTex = assetIconTex;
+                    // categoryIconTooltip = "MenuItem";
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(assetHandle.Category), assetHandle.Category, null);
             }
@@ -217,6 +224,10 @@ namespace GBG.AssetQuickAccess.Editor
                     ShowUrlContextMenu(handle);
                     break;
 
+                case AssetCategory.MenuItem:
+                    ShowMenuItemContextMenu(handle);
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(handle.Category), handle.Category, null);
             }
@@ -309,6 +320,16 @@ namespace GBG.AssetQuickAccess.Editor
             GenericMenu genericMenu = new GenericMenu();
             genericMenu.AddItem(new GUIContent("Open"), false, assetHandle.OpenAsset);
             genericMenu.AddItem(new GUIContent("Copy URL"), false, assetHandle.CopyPathToSystemBuffer);
+            genericMenu.AddItem(new GUIContent("Remove"), false, () => RemoveAsset(assetHandle));
+            genericMenu.ShowAsContext();
+        }
+
+        private void ShowMenuItemContextMenu(AssetHandle assetHandle)
+        {
+            Assert.IsTrue(assetHandle.Category == AssetCategory.MenuItem);
+
+            GenericMenu genericMenu = new GenericMenu();
+            genericMenu.AddItem(new GUIContent("Execute"), false, assetHandle.OpenAsset);
             genericMenu.AddItem(new GUIContent("Remove"), false, () => RemoveAsset(assetHandle));
             genericMenu.ShowAsContext();
         }

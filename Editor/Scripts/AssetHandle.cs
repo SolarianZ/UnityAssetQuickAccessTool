@@ -122,6 +122,19 @@ namespace GBG.AssetQuickAccess.Editor
             return urlHandle;
         }
 
+        public static AssetHandle CreateFromMenuPath(string menuPath, string title, out string error)
+        {
+            AssetHandle menuItemHandle = new AssetHandle
+            {
+                _category = AssetCategory.MenuItem,
+                _guid = menuPath,
+                _fallbackName = title ?? string.Empty,
+            };
+
+            error = null;
+            return menuItemHandle;
+        }
+
         public static void ForceSaveLocalCache()
         {
             AssetQuickAccessLocalCache.instance.ForceSave();
@@ -165,6 +178,7 @@ namespace GBG.AssetQuickAccess.Editor
 
                 case AssetCategory.ExternalFile:
                 case AssetCategory.Url:
+                case AssetCategory.MenuItem:
                     break;
 
                 default:
@@ -227,6 +241,10 @@ namespace GBG.AssetQuickAccess.Editor
                     Application.OpenURL(_guid);
                     break;
 
+                case AssetCategory.MenuItem:
+                    EditorApplication.ExecuteMenuItem(_guid);
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Category), Category, null);
             }
@@ -273,6 +291,7 @@ namespace GBG.AssetQuickAccess.Editor
                     return Path.GetFileName(GetAssetPath());
 
                 case AssetCategory.Url:
+                case AssetCategory.MenuItem:
                     return _guid;
 
                 default:
@@ -317,6 +336,7 @@ namespace GBG.AssetQuickAccess.Editor
 
                 case AssetCategory.ExternalFile:
                 case AssetCategory.Url:
+                case AssetCategory.MenuItem:
                     return _guid;
 
                 default:
@@ -339,7 +359,8 @@ namespace GBG.AssetQuickAccess.Editor
 
                 case AssetCategory.ExternalFile:
                 case AssetCategory.Url:
-                    return null;
+                case AssetCategory.MenuItem:
+                    return typeof(string).FullName;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(Category), Category, null);
@@ -354,12 +375,14 @@ namespace GBG.AssetQuickAccess.Editor
                 case AssetCategory.SceneObject:
                     if (_asset)
                     {
-                        return _asset.GetInstanceID();
+                        int instanceId = _asset.GetInstanceID();
+                        return instanceId;
                     }
                     return 0;
 
                 case AssetCategory.ExternalFile:
                 case AssetCategory.Url:
+                case AssetCategory.MenuItem:
                     return 0;
 
                 default:
@@ -407,6 +430,7 @@ namespace GBG.AssetQuickAccess.Editor
                     }
 
                 case AssetCategory.Url:
+                case AssetCategory.MenuItem:
                     if (string.IsNullOrEmpty(_fallbackName))
                     {
                         return _guid;

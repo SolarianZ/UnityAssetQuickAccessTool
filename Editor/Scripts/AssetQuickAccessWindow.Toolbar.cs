@@ -5,7 +5,10 @@ namespace GBG.AssetQuickAccess.Editor
 {
     public partial class AssetQuickAccessWindow
     {
-        private static readonly string[] _toolbarCategoryNames = { "All", "Assets", "Scene Objects", "External Items" };
+        private static readonly string[] _toolbarCategoryNames =
+        {
+            "All", "Assets", "Scene Objects", "External Items", "Menu Items"
+        };
         private GUIContent _toolbarMenuContent;
         private GUIStyle _toolbarMenuStyle;
 
@@ -34,6 +37,11 @@ namespace GBG.AssetQuickAccess.Editor
                     SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url);
                 }
 
+                if (GUILayout.Toggle(LocalCache.SelectedCategories == AssetCategory.MenuItem, _toolbarCategoryNames[4]))
+                {
+                    SelectCategory(AssetCategory.MenuItem);
+                }
+
                 if (_toolbarMenuContent == null)
                 {
                     _toolbarMenuContent = EditorGUIUtility.IconContent(EditorGUIUtility.isProSkin ? "d__Menu" : "_Menu");
@@ -53,6 +61,7 @@ namespace GBG.AssetQuickAccess.Editor
                     toolbarMenu.AddItem(new GUIContent("Add External File"), false, AddExternalFile);
                     toolbarMenu.AddItem(new GUIContent("Add External Folder"), false, AddExternalFolder);
                     toolbarMenu.AddItem(new GUIContent("Add URL"), false, AddUrlEditor);
+                    toolbarMenu.AddItem(new GUIContent("Add MenuItem"), false, AddMenuItemEditor);
                     toolbarMenu.AddSeparator("");
                     toolbarMenu.AddItem(new GUIContent("Remove All Items"), false, RemoveAllItems);
                     toolbarMenu.ShowAsContext();
