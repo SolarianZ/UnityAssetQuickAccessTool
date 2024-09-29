@@ -184,6 +184,47 @@ namespace GBG.AssetQuickAccess.Editor
             return added;
         }
 
+        public bool AddMenuItems(IEnumerable<(string url, string title)> menuItemInfos, ref StringBuilder errorsBuilder, bool clearErrorsBuilder)
+        {
+            if (clearErrorsBuilder)
+            {
+                errorsBuilder?.Clear();
+            }
+
+            bool added = false;
+            foreach ((string menuPath, string title) menuItemInfo in menuItemInfos)
+            {
+                if (_assetHandles.Any(h => h.GetAssetPath() == menuItemInfo.menuPath))
+                {
+                    errorsBuilder ??= new StringBuilder();
+                    errorsBuilder.AppendLine("Menu item already exists.");
+                    continue;
+                }
+
+                AssetHandle handle = AssetHandle.CreateFromMenuPath(menuItemInfo.menuPath, menuItemInfo.title, out string error);
+                if (!string.IsNullOrEmpty(error))
+                {
+                    errorsBuilder ??= new StringBuilder();
+                    errorsBuilder.AppendLine(error);
+                }
+
+                if (handle == null)
+                {
+                    continue;
+                }
+
+                _assetHandles.Add(handle);
+                added = true;
+            }
+
+            if (added)
+            {
+                ForceSave();
+            }
+
+            return added;
+        }
+
         public bool RemoveAsset(AssetHandle handle)
         {
             if (_assetHandles.Remove(handle))

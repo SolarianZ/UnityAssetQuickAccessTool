@@ -129,6 +129,12 @@ namespace GBG.AssetQuickAccess.Editor
                     categoryIconTooltip = "URL";
                     break;
 
+                case AssetCategory.MenuItem:
+                    assetIconTex = GetMenuItemTexture();
+                    categoryIconTex = assetIconTex;
+                    categoryIconTooltip = "MenuItem";
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(AssetHandle.Category), AssetHandle.Category, null);
             }
@@ -235,6 +241,10 @@ namespace GBG.AssetQuickAccess.Editor
                     ShowUrlContextMenu(mousePosition);
                     break;
 
+                case AssetCategory.MenuItem:
+                    ShowMenuItemContextMenu(mousePosition);
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(AssetHandle.Category), AssetHandle.Category, null);
             }
@@ -321,6 +331,16 @@ namespace GBG.AssetQuickAccess.Editor
             genericMenu.ShowAsContext();
         }
 
+        private void ShowMenuItemContextMenu(Vector2 mousePosition)
+        {
+            Assert.IsTrue(AssetHandle.Category == AssetCategory.MenuItem);
+
+            GenericMenu genericMenu = new GenericMenu();
+            genericMenu.AddItem(new GUIContent("Execute"), false, AssetHandle.OpenAsset);
+            genericMenu.AddItem(new GUIContent("Remove"), false, () => OnWantsToRemoveAssetItem?.Invoke(AssetHandle));
+            genericMenu.ShowAsContext();
+        }
+
 
         #region Static Textures
 
@@ -329,6 +349,7 @@ namespace GBG.AssetQuickAccess.Editor
         private static Texture _externalFileTextureCache;
         private static Texture _externalFileTextureSmallCache;
         private static Texture _urlTextureCache;
+        private static Texture _menuItemTextureCache;
         private static Texture _warningTextureCache;
 
         private static Texture GetObjectIcon(UObject obj, SceneAsset containingScene)
@@ -410,6 +431,16 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             return _urlTextureCache;
+        }
+
+        private static Texture GetMenuItemTexture()
+        {
+            if (!_menuItemTextureCache)
+            {
+                _menuItemTextureCache = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_PlayButton@2x" : "PlayButton@2x");
+            }
+
+            return _menuItemTextureCache;
         }
 
         private static Texture GetWarningTexture()

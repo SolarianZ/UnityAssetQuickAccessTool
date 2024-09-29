@@ -152,7 +152,7 @@ namespace GBG.AssetQuickAccess.Editor
                 showBorder = false,
                 showFoldoutHeader = false,
                 showBoundCollectionSize = false,
-                showAlternatingRowBackgrounds = AlternatingRowBackground.All,
+                showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly,
                 style =
                 {
                     flexGrow = 1,

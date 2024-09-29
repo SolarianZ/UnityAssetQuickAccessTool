@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -24,7 +23,8 @@ namespace GBG.AssetQuickAccess.Editor
             GetWindow<AssetQuickAccessWindow>();
         }
 
-        public static void AddItems(IList<UObject> objects, IList<string> paths, IList<(string url, string title)> urlInfos)
+        public static void AddItems(IList<UObject> objects, IList<string> paths,
+            IList<(string url, string title)> urlInfos, IList<(string menuPath, string title)> menuItemInfos)
         {
             HashSet<UObject> objectHashSet = new HashSet<UObject>(objects?.Count ?? 0);
             if (objects != null)
@@ -83,6 +83,21 @@ namespace GBG.AssetQuickAccess.Editor
                 added |= AssetQuickAccessLocalCache.instance.AddUrls(urlDict.Values, ref errorsBuilder, false);
             }
 
+            if (menuItemInfos != null)
+            {
+                Dictionary<string, (string menuPath, string title)> menuDict = new Dictionary<string, (string menuPath, string title)>();
+                for (int i = 0; i < menuItemInfos.Count; i++)
+                {
+                    string menuPath = menuItemInfos[i].menuPath;
+                    if (!menuDict.ContainsKey(menuPath))
+                    {
+                        menuDict.Add(menuPath, menuItemInfos[i]);
+                    }
+                }
+
+                added |= AssetQuickAccessLocalCache.instance.AddMenuItems(menuDict.Values, ref errorsBuilder, false);
+            }
+
             if (_instance)
             {
                 if (added)
@@ -103,7 +118,7 @@ namespace GBG.AssetQuickAccess.Editor
 #endif
         public static void AddSelectedObjects()
         {
-            AddItems(Selection.objects, null, null);
+            AddItems(Selection.objects, null, null, null);
         }
 
         [MenuItem("Assets/Bamboo/Add to Asset Quick Access", validate = true)]
@@ -116,7 +131,7 @@ namespace GBG.AssetQuickAccess.Editor
         {
             if (command.context)
             {
-                AddItems(new UObject[] { command.context }, null, null);
+                AddItems(new UObject[] { command.context }, null, null, null);
             }
         }
 #endif
@@ -225,7 +240,8 @@ namespace GBG.AssetQuickAccess.Editor
             };
             allCategoryButton.RegisterValueChangedCallback(evt =>
             {
-                if (evt.newValue) SelectCategory(AssetCategory.None);
+                if (evt.newValue)
+                    SelectCategory(AssetCategory.None);
             });
             radioButtonGroup.Add(allCategoryButton);
 
@@ -238,7 +254,8 @@ namespace GBG.AssetQuickAccess.Editor
             };
             assetsCategoryButton.RegisterValueChangedCallback(evt =>
             {
-                if (evt.newValue) SelectCategory(AssetCategory.ProjectAsset);
+                if (evt.newValue)
+                    SelectCategory(AssetCategory.ProjectAsset);
             });
             radioButtonGroup.Add(assetsCategoryButton);
 
@@ -251,7 +268,8 @@ namespace GBG.AssetQuickAccess.Editor
             };
             sceneObjectsCategoryButton.RegisterValueChangedCallback(evt =>
             {
-                if (evt.newValue) SelectCategory(AssetCategory.SceneObject);
+                if (evt.newValue)
+                    SelectCategory(AssetCategory.SceneObject);
             });
             radioButtonGroup.Add(sceneObjectsCategoryButton);
 
@@ -264,9 +282,24 @@ namespace GBG.AssetQuickAccess.Editor
             };
             externalFilesCategoryButton.RegisterValueChangedCallback(evt =>
             {
-                if (evt.newValue) SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url);
+                if (evt.newValue)
+                    SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url);
             });
             radioButtonGroup.Add(externalFilesCategoryButton);
+
+            // MenuItem Category
+            RadioButton menuItemCategoryButton = new RadioButton()
+            {
+                text = "Menu Items",
+                value = LocalCache.SelectedCategories == AssetCategory.MenuItem,
+                style = { marginRight = CategoryButtonMarginRight }
+            };
+            menuItemCategoryButton.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue)
+                    SelectCategory(AssetCategory.MenuItem);
+            });
+            radioButtonGroup.Add(menuItemCategoryButton);
 
             // Toolbar Menu
             ToolbarMenu toolbarMenu = new ToolbarMenu
@@ -286,7 +319,7 @@ namespace GBG.AssetQuickAccess.Editor
 
 
             DragAndDropInManipulator dndInManipulator = new DragAndDropInManipulator(rootVisualElement);
-            dndInManipulator.OnDragAndDrop += (objects, paths) => AddItems(objects, paths, null);
+            dndInManipulator.OnDragAndDrop += (objects, paths) => AddItems(objects, paths, null, null);
 
             // Asset list view
             _assetListView = new ListView
@@ -301,6 +334,7 @@ namespace GBG.AssetQuickAccess.Editor
                 //    ? LocalCache.AssetHandles
                 //    : _filteredAssetHandles,
                 selectionType = SelectionType.None,
+                showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly,
                 style =
                 {
                     flexGrow = 1,
@@ -329,24 +363,26 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void Update()
         {
-            if (_isViewDirty)
+            if (!_isViewDirty)
             {
-                UpdateFilteredAssetHandles();
-
-                if (LocalCache.SelectedCategories == AssetCategory.None)
-                {
-                    _assetListView.itemsSource = LocalCache.AssetHandles as IList;
-                    _assetListView.reorderable = true;
-                }
-                else
-                {
-                    _assetListView.itemsSource = _filteredAssetHandles;
-                    _assetListView.reorderable = false;
-                }
-
-                _assetListView.RefreshItems();
-                _isViewDirty = false;
+                return;
             }
+
+            UpdateFilteredAssetHandles();
+
+            if (LocalCache.SelectedCategories == AssetCategory.None)
+            {
+                _assetListView.itemsSource = LocalCache.AssetHandles as IList;
+                _assetListView.reorderable = true;
+            }
+            else
+            {
+                _assetListView.itemsSource = _filteredAssetHandles;
+                _assetListView.reorderable = false;
+            }
+
+            _assetListView.RefreshItems();
+            _isViewDirty = false;
         }
 
         private void OnProjectChange()
@@ -473,7 +509,12 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void AddMenuItem(string menuPath, string title)
         {
-            Debug.LogError("TODO: AddMenuItem");
+            if (string.IsNullOrWhiteSpace(menuPath))
+            {
+                return;
+            }
+
+            AddItems(null, null, null, new (string menuPath, string title)[] { (menuPath, title) });
         }
 
         private void AddUrl(string url, string title)
@@ -483,7 +524,7 @@ namespace GBG.AssetQuickAccess.Editor
                 return;
             }
 
-            AddItems(null, null, new (string url, string title)[] { (url, title) });
+            AddItems(null, null, new (string url, string title)[] { (url, title) }, null);
         }
 
         #endregion
@@ -505,6 +546,8 @@ namespace GBG.AssetQuickAccess.Editor
         private void BindAssetListItem(VisualElement element, int index)
         {
             AssetItemView view = (AssetItemView)element;
+            view.style.marginTop = LocalCache.SelectedCategories == AssetCategory.None ? 0 : 1;
+            view.style.marginBottom = LocalCache.SelectedCategories == AssetCategory.None ? 0 : 1;
             AssetHandle assetHandle = (AssetHandle)_assetListView.itemsSource[index];
             view.Bind(assetHandle);
         }
