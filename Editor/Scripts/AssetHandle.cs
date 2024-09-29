@@ -124,7 +124,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         public static AssetHandle CreateFromMenuPath(string menuPath, string title, out string error)
         {
-            AssetHandle urlHandle = new AssetHandle
+            AssetHandle menuItemHandle = new AssetHandle
             {
                 _category = AssetCategory.MenuItem,
                 _guid = menuPath,
@@ -132,7 +132,7 @@ namespace GBG.AssetQuickAccess.Editor
             };
 
             error = null;
-            return urlHandle;
+            return menuItemHandle;
         }
 
         public static void ForceSaveLocalCache()

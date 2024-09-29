@@ -184,7 +184,7 @@ namespace GBG.AssetQuickAccess.Editor
             return added;
         }
 
-        public bool AddMenuItems(IEnumerable<(string url, string title)> menuItemInfos, ref StringBuilder errorsBuilder, bool clearErrorsBuilder)
+        public bool AddMenuItems(IEnumerable<(string menuPath, string title)> menuItemInfos, ref StringBuilder errorsBuilder, bool clearErrorsBuilder)
         {
             if (clearErrorsBuilder)
             {
