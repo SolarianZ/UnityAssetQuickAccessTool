@@ -5,7 +5,6 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using static UnityEditor.PlayerSettings;
 
 namespace GBG.AssetQuickAccess.Editor
 {
@@ -47,7 +46,7 @@ namespace GBG.AssetQuickAccess.Editor
             List<string> menuPaths = TypeCache.GetMethodsWithAttribute<MenuItem>()
                 .SelectMany(method => method.GetCustomAttributes<MenuItem>())
                 .Where(attr => attr.validate == false)
-                .Select(attr => RemoveShortcut(attr.menuItem))
+                .Select(attr => RemoveShortcutSymbols(attr.menuItem))
                 .Distinct()
                 .ToList();
             //string[] menuPaths = AppDomain.CurrentDomain.GetAssemblies()
@@ -62,17 +61,31 @@ namespace GBG.AssetQuickAccess.Editor
             return menuPaths;
         }
 
-        // TODO: 移除快捷键符号！！
-        public static string RemoveShortcut(string menuPath)
+        public static string RemoveShortcutSymbols(string menuPath)
         {
             // https://docs.unity3d.com/ScriptReference/MenuItem.html
             //%: Represents Ctrl on Windows and Linux. Cmd on macOS.
             //^: Represents Ctrl on Windows, Linux, and macOS.
             //#: Represents Shift.
             //&: Represents Alt.
+            menuPath = menuPath.TrimEnd();
+            int lastIndexOfSpace = menuPath.LastIndexOf(' ');
+            if (lastIndexOfSpace == -1)
+            {
+                return menuPath;
+            }
 
-            Debug.LogError("TODO: RemoveShortcut");
+            char firstShortcutChar = menuPath[lastIndexOfSpace + 1];
+            if (firstShortcutChar != '%' &&
+               firstShortcutChar != '^' &&
+               firstShortcutChar != '#' &&
+               firstShortcutChar != '&')
+            {
+                //Debug.LogError($"[Asset Quick Access] Failed to remove shortcut symbols from menu path: {menuPath}");
+                return menuPath;
+            }
 
+            menuPath = menuPath.Substring(0, lastIndexOfSpace).TrimEnd();
             return menuPath;
         }
 
@@ -318,7 +331,7 @@ namespace GBG.AssetQuickAccess.Editor
             int slashIndex = menuPath.LastIndexOf('/');
             if (slashIndex > -1)
             {
-                menuName = menuPath.Substring(slashIndex);
+                menuName = menuPath.Substring(slashIndex + 1);
             }
 
             SubmitMenuItem(menuPath, menuName);
