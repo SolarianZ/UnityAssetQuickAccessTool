@@ -25,7 +25,7 @@ Pin frequently used **Unity objects, menu items and external files/folders/urls*
 
 Unity 2021.3 and later.
 
-For Unity 2019.2 - Unity 2021.2, please use version [v1.3.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.3.1).
+For Unity 2019.2 - Unity 2021.2, please use version [v1.4.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.4.1).
 For Unity 2017.4 - Unity 2019.1, please use version [v1.2.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.2.1).
 
 ## Installation
