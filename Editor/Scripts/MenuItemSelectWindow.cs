@@ -108,7 +108,7 @@ namespace GBG.AssetQuickAccess.Editor
 
 
         private SubmitHandler _onSubmit;
-        private TextField _menuPathField;
+        private IMGUITextField _menuPathField;
         private ListView _menuPathListView;
         private Label _statusLabel;
         private Button _addButton;
@@ -134,13 +134,13 @@ namespace GBG.AssetQuickAccess.Editor
             rootVisualElement.RegisterCallback<KeyUpEvent>(HandleKeyUp);
 
             // Menu path field
-            _menuPathField = new TextField
+            _menuPathField = new IMGUITextField
             {
                 name = "MenuPathField",
-                label = "Menu Item",
+                LabelText = "Menu Item",
             };
-            _menuPathField.Q<Label>().style.minWidth = 70;
-            _menuPathField.Q<Label>().style.maxWidth = 70;
+            _menuPathField.LabelElement.style.minWidth = 70;
+            _menuPathField.LabelElement.style.maxWidth = 70;
             _menuPathField.RegisterValueChangedCallback(OnMenuPathChanged);
             rootVisualElement.Add(_menuPathField);
 
