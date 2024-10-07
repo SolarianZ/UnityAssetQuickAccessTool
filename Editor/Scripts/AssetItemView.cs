@@ -14,8 +14,9 @@ namespace GBG.AssetQuickAccess.Editor
         public const string DragGenericData = "GBG_AQA_DragItem";
 
         public AssetHandle AssetHandle { get; private set; }
+
+        private VisualElement _container;
         private Image _assetIcon;
-        private Image _categoryIcon;
         private Label _label;
         private double _lastClickTime;
 
@@ -34,9 +35,6 @@ namespace GBG.AssetQuickAccess.Editor
             // content
             style.height = new Length(100, LengthUnit.Percent);
             style.flexDirection = FlexDirection.Row;
-            style.backgroundColor = EditorGUIUtility.isProSkin
-                ? new Color(0.35f, 0.35f, 0.35f, 0.5f)
-                : new Color(0.9f, 0.9f, 0.9f, 0.5f);
             // margin
             style.marginLeft = 0;
             style.marginRight = 0;
@@ -58,6 +56,21 @@ namespace GBG.AssetQuickAccess.Editor
             style.borderBottomLeftRadius = 0;
             style.borderBottomRightRadius = 0;
 
+            // container
+            _container = new VisualElement
+            {
+                name = "Container",
+                style =
+                {
+                    flexGrow = 1,
+                    flexDirection = FlexDirection.Row,
+                    backgroundColor = EditorGUIUtility.isProSkin
+                        ? new Color(0.35f, 0.35f, 0.35f, 0.5f)
+                        : new Color(0.9f, 0.9f, 0.9f, 0.5f),
+                }
+            };
+            Add(_container);
+
             _assetIcon = new Image
             {
                 name = "AssetIcon",
@@ -69,7 +82,7 @@ namespace GBG.AssetQuickAccess.Editor
                     height = 24,
                 }
             };
-            Add(_assetIcon);
+            _container.Add(_assetIcon);
 
             _label = new Label
             {
@@ -86,7 +99,7 @@ namespace GBG.AssetQuickAccess.Editor
                     textOverflow = TextOverflow.Ellipsis,
                 }
             };
-            Add(_label);
+            _container.Add(_label);
         }
 
         public void Bind(AssetHandle target)
@@ -94,24 +107,19 @@ namespace GBG.AssetQuickAccess.Editor
             AssetHandle = target;
             AssetHandle.Update();
 
+            //tooltip = $"{AssetHandle.GetAssetPath()} ({AssetHandle.Category})";
             tooltip = AssetHandle.GetAssetPath();
             _label.text = AssetHandle.GetDisplayName();
 
-            string categoryIconTooltip;
             Texture assetIconTex;
-            Texture categoryIconTex;
             switch (AssetHandle.Category)
             {
                 case AssetCategory.ProjectAsset:
                     assetIconTex = GetObjectIcon(AssetHandle.Asset, null);
-                    categoryIconTex = null;
-                    categoryIconTooltip = null;
                     break;
 
                 case AssetCategory.SceneObject:
                     assetIconTex = GetObjectIcon(AssetHandle.Asset, AssetHandle.Scene);
-                    categoryIconTex = GetSceneObjectTexture(true);
-                    categoryIconTooltip = "Scene Object";
                     break;
 
                 case AssetCategory.ExternalFile:
@@ -119,20 +127,14 @@ namespace GBG.AssetQuickAccess.Editor
                     assetIconTex = File.Exists(path) || Directory.Exists(path)
                         ? GetExternalFileTexture(false)
                         : GetWarningTexture();
-                    categoryIconTex = GetExternalFileTexture(true);
-                    categoryIconTooltip = "External File of Folder";
                     break;
 
                 case AssetCategory.Url:
                     assetIconTex = GetUrlTexture();
-                    categoryIconTex = assetIconTex;
-                    categoryIconTooltip = "URL";
                     break;
 
                 case AssetCategory.MenuItem:
                     assetIconTex = GetMenuItemTexture();
-                    categoryIconTex = assetIconTex;
-                    categoryIconTooltip = "MenuItem";
                     break;
 
                 default:
@@ -140,24 +142,6 @@ namespace GBG.AssetQuickAccess.Editor
             }
 
             _assetIcon.image = assetIconTex;
-            if (categoryIconTex)
-            {
-                if (_categoryIcon == null)
-                {
-                    CreateCategoryIcon();
-                }
-
-                Assert.IsTrue(_categoryIcon != null);
-                _categoryIcon.tooltip = categoryIconTooltip;
-                _categoryIcon.image = categoryIconTex;
-                _categoryIcon.style.display = DisplayStyle.Flex;
-            }
-            else if (_categoryIcon != null)
-            {
-                _categoryIcon.tooltip = categoryIconTooltip;
-                _categoryIcon.image = null;
-                _categoryIcon.style.display = DisplayStyle.None;
-            }
         }
 
         public void Unbind()
@@ -167,38 +151,13 @@ namespace GBG.AssetQuickAccess.Editor
             tooltip = null;
             _assetIcon.image = null;
             _label.text = null;
-            if (_categoryIcon != null)
-            {
-                _categoryIcon.tooltip = null;
-                _categoryIcon.image = null;
-                _categoryIcon.style.display = DisplayStyle.None;
-            }
         }
 
-        private void CreateCategoryIcon()
+        public void SetVerticalPadding(float padding)
         {
-            if (_categoryIcon != null)
-            {
-                return;
-            }
-
-            _categoryIcon = new Image
-            {
-                name = "CategoryIcon",
-                //pickingMode = PickingMode.Ignore, // Allow picking to show tooltip
-                style =
-                {
-                    flexShrink = 0,
-                    alignSelf = Align.Center,
-                    width = 16,
-                    height = 16,
-                }
-            };
-            // To avoid conflict with the drag action of the ListView items.
-            _categoryIcon.RegisterCallback<PointerDownEvent>(evt => evt.StopImmediatePropagation());
-
-            Add(_categoryIcon);
+            style.paddingTop = style.paddingBottom = padding;
         }
+
 
         private void OnClick()
         {

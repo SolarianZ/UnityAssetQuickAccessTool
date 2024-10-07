@@ -151,7 +151,7 @@ namespace GBG.AssetQuickAccess.Editor
             titleContent = EditorGUIUtility.IconContent(
                 EditorGUIUtility.isProSkin ? "d_Favorite" : "Favorite");
             titleContent.text = "Asset Quick Access";
-            minSize = new Vector2(330, 180);
+            minSize = new Vector2(260, 180);
 
             AssemblyReloadEvents.afterAssemblyReload -= SetViewDirtyDelay;
             AssemblyReloadEvents.afterAssemblyReload += SetViewDirtyDelay;
@@ -215,7 +215,11 @@ namespace GBG.AssetQuickAccess.Editor
             // Toolbar
             Toolbar toolbar = new Toolbar
             {
-                style = { justifyContent = Justify.SpaceBetween }
+                style =
+                {
+                    height = StyleKeyword.Auto,
+                    justifyContent = Justify.SpaceBetween,
+                }
             };
             rootVisualElement.Add(toolbar);
 
@@ -226,7 +230,11 @@ namespace GBG.AssetQuickAccess.Editor
                 style = { flexShrink = 1 },
             };
 #if UNITY_2022_2_OR_NEWER
-            radioButtonGroup.Q(className: RadioButtonGroup.containerUssClassName).style.flexDirection = FlexDirection.Row;
+            VisualElement radioButtonGroupContainer = radioButtonGroup.Q(className: RadioButtonGroup.containerUssClassName);
+            radioButtonGroupContainer.style.flexDirection = FlexDirection.Row;
+            radioButtonGroupContainer.style.flexWrap = Wrap.Wrap;
+#else
+            radioButtonGroup.style.flexWrap = Wrap.Wrap;
 #endif
             //radioButtonGroup.RegisterValueChangedCallback(SelectCategory); // Not work in Unity 2021
             toolbar.Add(radioButtonGroup);
@@ -546,10 +554,9 @@ namespace GBG.AssetQuickAccess.Editor
         private void BindAssetListItem(VisualElement element, int index)
         {
             AssetItemView view = (AssetItemView)element;
-            view.style.marginTop = LocalCache.SelectedCategories == AssetCategory.None ? 0 : 1;
-            view.style.marginBottom = LocalCache.SelectedCategories == AssetCategory.None ? 0 : 1;
             AssetHandle assetHandle = (AssetHandle)_assetListView.itemsSource[index];
             view.Bind(assetHandle);
+            view.SetVerticalPadding(LocalCache.SelectedCategories == AssetCategory.None ? 0 : 1);
         }
 
         private void UnbindAssetListItem(VisualElement element, int index)
