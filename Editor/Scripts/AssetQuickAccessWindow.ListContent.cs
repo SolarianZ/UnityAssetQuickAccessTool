@@ -12,7 +12,6 @@ namespace GBG.AssetQuickAccess.Editor
     public partial class AssetQuickAccessWindow
     {
         private const float AssetIconSize = 24f;
-        private const float CategoryIconSize = 16f;
         private const double DoubleClickInterval = 0.4f;
 
         private ReorderableList _assetList;
@@ -69,19 +68,14 @@ namespace GBG.AssetQuickAccess.Editor
             AssetHandle assetHandle = _filteredAssetHandles[index];
             // string categoryIconTooltip;
             Texture assetIconTex;
-            Texture categoryIconTex;
             switch (assetHandle.Category)
             {
                 case AssetCategory.ProjectAsset:
                     assetIconTex = TextureUtility.GetObjectIcon(assetHandle);
-                    categoryIconTex = null;
-                    // categoryIconTooltip = null;
                     break;
 
                 case AssetCategory.SceneObject:
                     assetIconTex = TextureUtility.GetObjectIcon(assetHandle);
-                    categoryIconTex = TextureUtility.GetSceneObjectTexture(true);
-                    // categoryIconTooltip = "Scene Object";
                     break;
 
                 case AssetCategory.ExternalFile:
@@ -89,22 +83,16 @@ namespace GBG.AssetQuickAccess.Editor
                     assetIconTex = File.Exists(path) || Directory.Exists(path)
                         ? TextureUtility.GetExternalFileTexture(false)
                         : TextureUtility.GetWarningTexture();
-                    categoryIconTex = TextureUtility.GetExternalFileTexture(true);
-                    // categoryIconTooltip = "External File of Folder";
                     break;
 
                 case AssetCategory.Url:
                     // string url = assetHandle.GetAssetPath();
                     assetIconTex = TextureUtility.GetUrlTexture();
-                    categoryIconTex = assetIconTex;
-                    // categoryIconTooltip = "URL";
                     break;
 
                 case AssetCategory.MenuItem:
                     // string url = assetHandle.GetAssetPath();
                     assetIconTex = TextureUtility.GetMenuItemTexture();
-                    categoryIconTex = assetIconTex;
-                    // categoryIconTooltip = "MenuItem";
                     break;
 
                 default:
@@ -141,9 +129,7 @@ namespace GBG.AssetQuickAccess.Editor
                 {
                     x = rect.x + AssetIconSize,
                     y = rect.y,
-                    width = categoryIconTex
-                        ? rect.width - AssetIconSize - CategoryIconSize - 2 // Margin right: 2
-                        : rect.width - AssetIconSize,
+                    width = rect.width - AssetIconSize,
                     height = rect.height
                 };
                 if (_assetItemStyle == null)
@@ -164,23 +150,6 @@ namespace GBG.AssetQuickAccess.Editor
                 else
                 {
                     GUI.Label(assetButtonRect, assetHandle.GetDisplayName(), _assetItemStyle);
-                }
-
-                #endregion
-
-
-                #region Category icon
-
-                if (categoryIconTex)
-                {
-                    Rect categoryIconRect = new Rect
-                    {
-                        x = rect.xMax - CategoryIconSize,
-                        y = rect.y + (rect.height - CategoryIconSize) / 2f,
-                        width = CategoryIconSize,
-                        height = CategoryIconSize
-                    };
-                    GUI.DrawTexture(categoryIconRect, categoryIconTex);
                 }
 
                 #endregion
