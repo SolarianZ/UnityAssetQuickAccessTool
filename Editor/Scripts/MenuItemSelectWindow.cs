@@ -206,7 +206,7 @@ namespace GBG.AssetQuickAccess.Editor
             horizontal2.Add(cancelButton);
 
             // Focus
-            _menuPathField.Focus();
+            _menuPathField.FocusTextField();
         }
 
 
