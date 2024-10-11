@@ -45,7 +45,9 @@ namespace GBG.AssetQuickAccess.Editor
         public Label HintElement { get; }
         public IMGUIContainer InputFieldElement { get; }
 
+        private const string TextFieldControlName = "IMGUITextField.TextField";
         private string _value;
+        private bool _focusTextFieldOnce;
 
 
         public IMGUITextField(string labelText = null, string hintText = null)
@@ -120,10 +122,16 @@ namespace GBG.AssetQuickAccess.Editor
             }
         }
 
+        public void FocusTextField()
+        {
+            _focusTextFieldOnce = true;
+        }
+
         private void DrawTextField()
         {
             string previousValue = _value;
             EditorGUI.BeginChangeCheck();
+            GUI.SetNextControlName(TextFieldControlName);
             _value = EditorGUILayout.TextField(_value);
             if (EditorGUI.EndChangeCheck())
             {
@@ -134,6 +142,13 @@ namespace GBG.AssetQuickAccess.Editor
                     SendEvent(evt);
                 }
             }
+
+            if (_focusTextFieldOnce)
+            {
+                EditorGUI.FocusTextInControl(TextFieldControlName);
+            }
+
+            _focusTextFieldOnce = false;
         }
     }
 }

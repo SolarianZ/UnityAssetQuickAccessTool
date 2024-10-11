@@ -28,8 +28,8 @@ namespace GBG.AssetQuickAccess.Editor
 
 
         private SubmitTitleHandler _onSubmit;
-        private TextField _urlField;
-        private TextField _titleField;
+        private IMGUITextField _urlField;
+        private IMGUITextField _titleField;
         private Button _getTitleButton;
         private Label _getTitleStatusLabel;
 
@@ -50,10 +50,10 @@ namespace GBG.AssetQuickAccess.Editor
             rootVisualElement.RegisterCallback<KeyUpEvent>(HandleKeyUp);
 
             // Url field
-            _urlField = new TextField
+            _urlField = new IMGUITextField
             {
                 name = "UrlField",
-                label = "Url",
+                LabelText = "Url",
             };
             _urlField.Q<Label>().style.minWidth = 40;
             _urlField.Q<Label>().style.maxWidth = 40;
@@ -68,10 +68,10 @@ namespace GBG.AssetQuickAccess.Editor
                 }
             };
             rootVisualElement.Add(horizontal1);
-            _titleField = new TextField
+            _titleField = new IMGUITextField
             {
                 name = "TitleField",
-                label = "Title",
+                LabelText = "Title",
                 style =
                 {
                     flexGrow = 1,
@@ -148,16 +148,12 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void FocusUrlField()
         {
-            // _urlField.Focus();
-            VisualElement textInput = _urlField.Q(className: TextField.inputUssClassName);
-            _urlField.schedule.Execute(textInput.Focus);
+            _urlField.FocusTextField();
         }
 
         private void FocusTitleField()
         {
-            // _titleField.Focus();
-            VisualElement textInput = _titleField.Q(className: TextField.inputUssClassName);
-            _titleField.schedule.Execute(textInput.Focus);
+            _titleField.FocusTextField();
         }
 
 
