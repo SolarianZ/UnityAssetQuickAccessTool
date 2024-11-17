@@ -336,7 +336,9 @@ namespace GBG.AssetQuickAccess.Editor
                 return new Color32(200, 0, 0, 255);
             }
 
-            return EditorGUIUtility.isProSkin ? new Color32(196, 196, 196, 255) : new Color32(24, 24, 24, 255);
+            return EditorGUIUtility.isProSkin 
+                ? new Color32(196, 196, 196, 255) 
+                : new Color32(24, 24, 24, 255);
         }
 
         //public static async Task<string> GetWebsiteTitleAsync(string url)

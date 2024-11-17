@@ -148,8 +148,7 @@ namespace GBG.AssetQuickAccess.Editor
         {
             _instance = this;
 
-            titleContent = EditorGUIUtility.IconContent(
-                EditorGUIUtility.isProSkin ? "d_Favorite" : "Favorite");
+            titleContent = EditorGUIUtility.IconContent("Favorite");
             titleContent.text = "Asset Quick Access";
             minSize = new Vector2(260, 180);
 
@@ -198,7 +197,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void ShowButton(Rect pos)
         {
-            if (GUI.Button(pos, EditorGUIUtility.IconContent("_Help"), GUI.skin.FindStyle("IconButton")))
+            if (GUI.Button(pos, EditorGUIUtility.IconContent("_Help"), EditorStyles.iconButton))
             {
                 Application.OpenURL("https://github.com/SolarianZ/UnityAssetQuickAccessTool");
             }

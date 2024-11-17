@@ -78,8 +78,10 @@ namespace GBG.AssetQuickAccess.Editor
                 style =
                 {
                     flexShrink = 0,
-                    width = 24,
-                    height = 24,
+                    alignSelf = Align.Center,
+                    width = 16,
+                    height = 16,
+                    marginLeft = 4,
                 }
             };
             _container.Add(_assetIcon);
@@ -125,7 +127,7 @@ namespace GBG.AssetQuickAccess.Editor
                 case AssetCategory.ExternalFile:
                     string path = AssetHandle.GetAssetPath();
                     assetIconTex = File.Exists(path) || Directory.Exists(path)
-                        ? GetExternalFileTexture(false)
+                        ? GetExternalFileTexture()
                         : GetWarningTexture();
                     break;
 
@@ -301,15 +303,7 @@ namespace GBG.AssetQuickAccess.Editor
         }
 
 
-        #region Static Textures
-
-        private static Texture _sceneObjectTextureCache;
-        private static Texture _sceneObjectTextureSmallCache;
-        private static Texture _externalFileTextureCache;
-        private static Texture _externalFileTextureSmallCache;
-        private static Texture _urlTextureCache;
-        private static Texture _menuItemTextureCache;
-        private static Texture _warningTextureCache;
+        #region Get Textures
 
         private static Texture GetObjectIcon(UObject obj, SceneAsset containingScene)
         {
@@ -330,86 +324,35 @@ namespace GBG.AssetQuickAccess.Editor
                     }
                 }
 
-                return GetSceneObjectTexture(false);
+                return GetSceneObjectTexture();
             }
 
             return GetWarningTexture();
         }
 
-        private static Texture GetSceneObjectTexture(bool small)
+        private static Texture GetSceneObjectTexture()
         {
-            if (small)
-            {
-                if (!_sceneObjectTextureSmallCache)
-                {
-                    _sceneObjectTextureSmallCache = (Texture)EditorGUIUtility.Load(
-                        EditorGUIUtility.isProSkin
-                            ? "d_UnityEditor.SceneHierarchyWindow"
-                            : "UnityEditor.SceneHierarchyWindow");
-                }
-
-                return _sceneObjectTextureSmallCache;
-            }
-
-            if (!_sceneObjectTextureCache)
-            {
-                _sceneObjectTextureCache = (Texture)EditorGUIUtility.Load(
-                    EditorGUIUtility.isProSkin
-                        ? "d_UnityEditor.SceneHierarchyWindow@2x"
-                        : "UnityEditor.SceneHierarchyWindow@2x");
-            }
-
-            return _sceneObjectTextureCache;
+            return EditorGUIUtility.IconContent("UnityEditor.SceneHierarchyWindow").image;
         }
 
-        private static Texture GetExternalFileTexture(bool small)
+        private static Texture GetExternalFileTexture()
         {
-            if (small)
-            {
-                if (!_externalFileTextureSmallCache)
-                {
-                    _externalFileTextureSmallCache = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import" : "Import");
-                }
-
-                return _externalFileTextureSmallCache;
-            }
-
-            if (!_externalFileTextureCache)
-            {
-                _externalFileTextureCache = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_Import@2x" : "Import@2x");
-            }
-
-            return _externalFileTextureCache;
+            return EditorGUIUtility.IconContent("Import").image;
         }
 
         private static Texture GetUrlTexture()
         {
-            if (!_urlTextureCache)
-            {
-                _urlTextureCache = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_BuildSettings.Web.Small" : "BuildSettings.Web.Small");
-            }
-
-            return _urlTextureCache;
+            return EditorGUIUtility.IconContent("BuildSettings.Web.Small").image;
         }
 
         private static Texture GetMenuItemTexture()
         {
-            if (!_menuItemTextureCache)
-            {
-                _menuItemTextureCache = (Texture)EditorGUIUtility.Load(EditorGUIUtility.isProSkin ? "d_PlayButton@2x" : "PlayButton@2x");
-            }
-
-            return _menuItemTextureCache;
+            return EditorGUIUtility.IconContent("PlayButton").image;
         }
 
         private static Texture GetWarningTexture()
         {
-            if (!_warningTextureCache)
-            {
-                _warningTextureCache = (Texture)EditorGUIUtility.Load("Warning@2x");
-            }
-
-            return _warningTextureCache;
+            return EditorGUIUtility.IconContent("Warning").image;
         }
 
         #endregion
