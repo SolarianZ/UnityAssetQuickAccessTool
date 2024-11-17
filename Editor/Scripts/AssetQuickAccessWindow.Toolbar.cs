@@ -44,7 +44,7 @@ namespace GBG.AssetQuickAccess.Editor
 
                 if (_toolbarMenuContent == null)
                 {
-                    _toolbarMenuContent = EditorGUIUtility.IconContent(EditorGUIUtility.isProSkin ? "d__Menu" : "_Menu");
+                    _toolbarMenuContent = EditorGUIUtility.IconContent("toolbar plus");
                 }
 
                 if (_toolbarMenuStyle == null)
