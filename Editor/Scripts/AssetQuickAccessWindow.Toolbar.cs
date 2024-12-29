@@ -58,6 +58,8 @@ namespace GBG.AssetQuickAccess.Editor
                 {
                     // Toolbar Menu
                     GenericMenu toolbarMenu = new GenericMenu();
+                    if(Selection.objects != null && Selection.objects.Length > 0)
+                        toolbarMenu.AddItem(new GUIContent("Add Selected Objects"), false, AddSelectedObjects);
                     toolbarMenu.AddItem(new GUIContent("Add External File"), false, AddExternalFile);
                     toolbarMenu.AddItem(new GUIContent("Add External Folder"), false, AddExternalFolder);
                     toolbarMenu.AddItem(new GUIContent("Add URL"), false, AddUrlEditor);
