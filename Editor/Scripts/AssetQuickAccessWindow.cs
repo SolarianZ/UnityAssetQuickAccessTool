@@ -314,6 +314,10 @@ namespace GBG.AssetQuickAccess.Editor
                 tooltip = "Add External File or Folder",
                 style = { flexShrink = 0 }
             };
+            toolbarMenu.menu.AppendAction("Add Selected Objects", _ => AddSelectedObjects(), 
+                _ => Selection.objects != null && Selection.objects.Length > 0 
+                    ? DropdownMenuAction.Status.Normal 
+                    : DropdownMenuAction.Status.Disabled);
             toolbarMenu.menu.AppendAction("Add External File", AddExternalFile);
             toolbarMenu.menu.AppendAction("Add External Folder", AddExternalFolder);
             toolbarMenu.menu.AppendAction("Add Menu Item", AddMenuItemEditor);
@@ -514,24 +518,24 @@ namespace GBG.AssetQuickAccess.Editor
             UrlEditWindow.Open(upperCenter, AddUrl);
         }
 
-        private void AddMenuItem(string menuPath, string title)
+        private void AddMenuItem(string menuPath, string menuTitle)
         {
             if (string.IsNullOrWhiteSpace(menuPath))
             {
                 return;
             }
 
-            AddItems(null, null, null, new (string menuPath, string title)[] { (menuPath, title) });
+            AddItems(null, null, null, new (string menuPath, string title)[] { (menuPath, menuTitle) });
         }
 
-        private void AddUrl(string url, string title)
+        private void AddUrl(string url, string menuTitle)
         {
             if (string.IsNullOrWhiteSpace(url))
             {
                 return;
             }
 
-            AddItems(null, null, new (string url, string title)[] { (url, title) }, null);
+            AddItems(null, null, new (string url, string title)[] { (url, menuTitle) }, null);
         }
 
         #endregion

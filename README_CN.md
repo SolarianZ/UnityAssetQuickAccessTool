@@ -25,7 +25,7 @@
 
 Unity 2021.3 或更新版本。
 
-Unity 2019.2 - Unity 2021.2请使用 [v1.4.2](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.4.2) 版本。<br/>
+Unity 2019.2 - Unity 2021.2请使用 [v1.4.3](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.4.3) 版本。<br/>
 Unity 2017.4 - Unity 2019.1请使用 [v1.2.1](https://github.com/SolarianZ/UnityAssetQuickAccessTool/releases/tag/v1.2.1) 版本。
 
 ## 安装
