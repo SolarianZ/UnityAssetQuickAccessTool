@@ -229,7 +229,7 @@ namespace GBG.AssetQuickAccess.Editor
                 style = { flexShrink = 1 },
             };
 #if UNITY_2022_2_OR_NEWER
-            VisualElement radioButtonGroupContainer = radioButtonGroup.Q(className: RadioButtonGroup.containerUssClassName);
+            VisualElement radioButtonGroupContainer = radioButtonGroup.contentContainer;
             radioButtonGroupContainer.style.flexDirection = FlexDirection.Row;
             radioButtonGroupContainer.style.flexWrap = Wrap.Wrap;
 #else
