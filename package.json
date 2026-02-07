@@ -1,6 +1,6 @@
 {
   "name": "com.greenbamboogames.assetquickaccess",
-  "version": "3.3.3",
+  "version": "3.3.4",
   "displayName": "Asset Quick Access!",
   "description": "Pin frequently used objects to a separate editor window. An enhanced version of Unity's Favorites feature.",
   "unity": "2021.3",
