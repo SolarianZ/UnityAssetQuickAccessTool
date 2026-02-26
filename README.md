@@ -14,6 +14,7 @@ Pin frequently used **Unity objects, menu items and external files/folders/urls*
   - External files and folders
   - External URLs(text content)
   - Menu items(path)
+- Record recently opened assets
 - Filter recorded items by category.
 - Quickly locate / open recorded items.
 - Copy the path of recorded items.

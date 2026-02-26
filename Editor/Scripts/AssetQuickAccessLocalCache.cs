@@ -11,14 +11,31 @@ namespace GBG.AssetQuickAccess.Editor
         FilePathAttribute.Location.ProjectFolder)]
     internal class AssetQuickAccessLocalCache : ScriptableSingleton<AssetQuickAccessLocalCache>
     {
+        public const int MaxRecentAssetCount = 16;
+
         public IList<AssetHandle> AssetHandles => _assetHandles;
         public AssetCategory SelectedCategories
         {
             get { return _selectedCategory; }
             set
             {
-                if (_selectedCategory == value) return;
+                if (_selectedCategory == value && !_isRecentAssetsSelected)
+                    return;
                 _selectedCategory = value;
+                _isRecentAssetsSelected = false;
+                ForceSave();
+            }
+        }
+        public IList<AssetHandle> RecentAssetHandles => _recentAssetHandles;
+        public bool IsRecentAssetsSelected
+        {
+            get { return _isRecentAssetsSelected; }
+            set
+            {
+                if (_isRecentAssetsSelected == value)
+                    return;
+                _selectedCategory = AssetCategory.None;
+                _isRecentAssetsSelected = value;
                 ForceSave();
             }
         }
@@ -27,6 +44,10 @@ namespace GBG.AssetQuickAccess.Editor
         private List<AssetHandle> _assetHandles = new List<AssetHandle>();
         [SerializeField]
         private AssetCategory _selectedCategory = AssetCategory.None;
+        [SerializeField]
+        private List<AssetHandle> _recentAssetHandles = new List<AssetHandle>();
+        [SerializeField]
+        private bool _isRecentAssetsSelected;
 
 
         public bool AddExternalPaths(IEnumerable<string> paths, ref StringBuilder errorsBuilder, bool clearErrorsBuilder)
@@ -242,6 +263,51 @@ namespace GBG.AssetQuickAccess.Editor
             ForceSave();
 
             Debug.Log("All asset quick access items removed.");
+        }
+
+        internal bool AddRecentAsset(UObject obj)
+        {
+            if (!obj)
+                return false;
+
+            if (!EditorUtility.IsPersistent(obj))
+                return false;
+
+            int removedCount = _recentAssetHandles.RemoveAll(h => !h.Asset);
+
+            AssetHandle handle = AssetHandle.CreateFromObject(obj, out string error);
+            int existingHandleIndex = _recentAssetHandles.FindIndex(h => h.Guid == handle.Guid);
+            if (existingHandleIndex != -1)
+            {
+                _recentAssetHandles.RemoveAt(existingHandleIndex);
+                _recentAssetHandles.Insert(0, handle);
+                ForceSave();
+                return true;
+            }
+
+            if (!string.IsNullOrEmpty(error))
+                Debug.LogError($"Error on adding recent asset: {error}");
+
+            if (handle == null)
+            {
+                if (removedCount > 0)
+                    ForceSave();
+                return false;
+            }
+
+            while (_recentAssetHandles.Count >= MaxRecentAssetCount)
+                _recentAssetHandles.RemoveAt(MaxRecentAssetCount - 1);
+
+            _recentAssetHandles.Insert(0, handle);
+            ForceSave();
+
+            return true;
+        }
+
+        public void RemoveAllRecentAssets()
+        {
+            _recentAssetHandles.Clear();
+            ForceSave();
         }
 
         public void ForceSave()

@@ -98,16 +98,16 @@ namespace GBG.AssetQuickAccess.Editor
                 added |= AssetQuickAccessLocalCache.instance.AddMenuItems(menuDict.Values, ref errorsBuilder, false);
             }
 
-            if (_instance)
+            if (instance)
             {
                 if (added)
                 {
-                    _instance.SetViewDirty();
+                    instance.SetViewDirty();
                 }
 
                 if (errorsBuilder != null && errorsBuilder.Length > 0)
                 {
-                    _instance.ShowNotification(new GUIContent(errorsBuilder.ToString()));
+                    instance.ShowNotification(new GUIContent(errorsBuilder.ToString()));
                 }
             }
         }
@@ -137,7 +137,7 @@ namespace GBG.AssetQuickAccess.Editor
 #endif
 
 
-        private static AssetQuickAccessWindow _instance;
+        internal static AssetQuickAccessWindow instance { get; private set; }
         private bool _isViewDirty;
         private bool _setViewDirtyOnFocus;
         private List<AssetHandle> _filteredAssetHandles = new List<AssetHandle>();
@@ -146,7 +146,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnEnable()
         {
-            _instance = this;
+            instance = this;
 
             titleContent = EditorGUIUtility.IconContent("Favorite");
             titleContent.text = "Asset Quick Access";
@@ -181,7 +181,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnDisable()
         {
-            _instance = null;
+            instance = null;
 
             AssemblyReloadEvents.afterAssemblyReload -= SetViewDirtyDelay;
             EditorApplication.hierarchyChanged -= SetViewDirty;
@@ -242,7 +242,7 @@ namespace GBG.AssetQuickAccess.Editor
             RadioButton allCategoryButton = new RadioButton()
             {
                 text = "All",
-                value = LocalCache.SelectedCategories == AssetCategory.None,
+                value = LocalCache.SelectedCategories == AssetCategory.None && !LocalCache.IsRecentAssetsSelected,
                 style = { marginRight = CategoryButtonMarginRight }
             };
             allCategoryButton.RegisterValueChangedCallback(evt =>
@@ -251,6 +251,20 @@ namespace GBG.AssetQuickAccess.Editor
                     SelectCategory(AssetCategory.None);
             });
             radioButtonGroup.Add(allCategoryButton);
+
+            // Recent Assets
+            RadioButton recentAssetsButton = new RadioButton()
+            {
+                text = "Recent Assets",
+                value = LocalCache.IsRecentAssetsSelected,
+                style = { marginRight = CategoryButtonMarginRight }
+            };
+            recentAssetsButton.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue)
+                    SelectRecentAssets();
+            });
+            radioButtonGroup.Add(recentAssetsButton);
 
             // Project Assets Category
             RadioButton assetsCategoryButton = new RadioButton()
@@ -280,20 +294,6 @@ namespace GBG.AssetQuickAccess.Editor
             });
             radioButtonGroup.Add(sceneObjectsCategoryButton);
 
-            // External Files Category
-            RadioButton externalFilesCategoryButton = new RadioButton()
-            {
-                text = "External Items",
-                value = LocalCache.SelectedCategories == (AssetCategory.ExternalFile | AssetCategory.Url),
-                style = { marginRight = CategoryButtonMarginRight }
-            };
-            externalFilesCategoryButton.RegisterValueChangedCallback(evt =>
-            {
-                if (evt.newValue)
-                    SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url);
-            });
-            radioButtonGroup.Add(externalFilesCategoryButton);
-
             // MenuItem Category
             RadioButton menuItemCategoryButton = new RadioButton()
             {
@@ -308,19 +308,35 @@ namespace GBG.AssetQuickAccess.Editor
             });
             radioButtonGroup.Add(menuItemCategoryButton);
 
+            // External Files Category
+            RadioButton externalFilesCategoryButton = new RadioButton()
+            {
+                text = "External Items",
+                value = LocalCache.SelectedCategories == (AssetCategory.ExternalFile | AssetCategory.Url),
+                style = { marginRight = CategoryButtonMarginRight }
+            };
+            externalFilesCategoryButton.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue)
+                    SelectCategory(AssetCategory.ExternalFile | AssetCategory.Url);
+            });
+            radioButtonGroup.Add(externalFilesCategoryButton);
+
             // Toolbar Menu
             ToolbarMenu toolbarMenu = new ToolbarMenu
             {
                 tooltip = "Add External File or Folder",
                 style = { flexShrink = 0 }
             };
-            toolbarMenu.menu.AppendAction("Add Selected Objects", _ => AddSelectedObjects(), 
-                _ => Selection.objects != null && Selection.objects.Length > 0 
-                    ? DropdownMenuAction.Status.Normal 
+            toolbarMenu.menu.AppendAction("Add Selected Objects", _ => AddSelectedObjects(),
+                _ => Selection.objects != null && Selection.objects.Length > 0
+                    ? DropdownMenuAction.Status.Normal
                     : DropdownMenuAction.Status.Disabled);
+            toolbarMenu.menu.AppendSeparator("");
+            toolbarMenu.menu.AppendAction("Add Menu Item", AddMenuItemEditor);
+            toolbarMenu.menu.AppendSeparator("");
             toolbarMenu.menu.AppendAction("Add External File", AddExternalFile);
             toolbarMenu.menu.AppendAction("Add External Folder", AddExternalFolder);
-            toolbarMenu.menu.AppendAction("Add Menu Item", AddMenuItemEditor);
             toolbarMenu.menu.AppendAction("Add URL", AddUrlEditor);
             toolbarMenu.menu.AppendSeparator("");
             toolbarMenu.menu.AppendAction("Remove All Items", _ => RemoveAllItems());
@@ -375,13 +391,16 @@ namespace GBG.AssetQuickAccess.Editor
         private void Update()
         {
             if (!_isViewDirty)
-            {
                 return;
-            }
 
             UpdateFilteredAssetHandles();
 
-            if (LocalCache.SelectedCategories == AssetCategory.None)
+            if (LocalCache.IsRecentAssetsSelected)
+            {
+                _assetListView.itemsSource = LocalCache.RecentAssetHandles as IList;
+                _assetListView.reorderable = false;
+            }
+            else if (LocalCache.SelectedCategories == AssetCategory.None)
             {
                 _assetListView.itemsSource = LocalCache.AssetHandles as IList;
                 _assetListView.reorderable = true;
@@ -401,7 +420,7 @@ namespace GBG.AssetQuickAccess.Editor
             SetViewDirty();
         }
 
-        private void SetViewDirty()
+        internal void SetViewDirty()
         {
             if (hasFocus)
             {
@@ -413,7 +432,7 @@ namespace GBG.AssetQuickAccess.Editor
             }
         }
 
-        private void SetViewDirtyDelay()
+        internal void SetViewDirtyDelay()
         {
             // Fix #1
             EditorApplication.delayCall += SetViewDirty;
@@ -444,20 +463,23 @@ namespace GBG.AssetQuickAccess.Editor
             SetViewDirty();
         }
 
+        private void SelectRecentAssets()
+        {
+            LocalCache.IsRecentAssetsSelected = true;
+            SetViewDirty();
+        }
+
         private void UpdateFilteredAssetHandles()
         {
             _filteredAssetHandles.Clear();
-            if (LocalCache.SelectedCategories == AssetCategory.None)
-            {
+
+            if (LocalCache.SelectedCategories == AssetCategory.None || LocalCache.IsRecentAssetsSelected)
                 return;
-            }
 
             foreach (AssetHandle assetHandle in LocalCache.AssetHandles)
             {
                 if (assetHandle.CheckFilter(LocalCache.SelectedCategories))
-                {
                     _filteredAssetHandles.Add(assetHandle);
-                }
             }
         }
 

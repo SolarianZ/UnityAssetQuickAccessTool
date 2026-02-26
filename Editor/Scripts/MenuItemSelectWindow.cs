@@ -44,11 +44,11 @@ namespace GBG.AssetQuickAccess.Editor
         public static List<string> GetAllMenuItemPaths()
         {
             List<string> menuPaths = TypeCache.GetMethodsWithAttribute<MenuItem>()
-                .SelectMany(method => method.GetCustomAttributes<MenuItem>())
-                .Where(attr => attr.validate == false)
-                .Select(attr => RemoveShortcutSymbols(attr.menuItem))
-                .Distinct()
-                .ToList();
+                                              .SelectMany(method => method.GetCustomAttributes<MenuItem>())
+                                              .Where(attr => attr.validate == false)
+                                              .Select(attr => RemoveShortcutSymbols(attr.menuItem))
+                                              .Distinct()
+                                              .ToList();
             //string[] menuPaths = AppDomain.CurrentDomain.GetAssemblies()
             //     .SelectMany(asm => asm.GetTypes())
             //     .SelectMany(type => type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
@@ -77,9 +77,9 @@ namespace GBG.AssetQuickAccess.Editor
 
             char firstShortcutChar = menuPath[lastIndexOfSpace + 1];
             if (firstShortcutChar != '%' &&
-               firstShortcutChar != '^' &&
-               firstShortcutChar != '#' &&
-               firstShortcutChar != '&')
+                firstShortcutChar != '^' &&
+                firstShortcutChar != '#' &&
+                firstShortcutChar != '&')
             {
                 //Debug.LogError($"[Asset Quick Access] Failed to remove shortcut symbols from menu path: {menuPath}");
                 return menuPath;
@@ -115,6 +115,7 @@ namespace GBG.AssetQuickAccess.Editor
 
         private List<string> _allMenuPaths = new List<string>();
         private List<string> _filteredMenuPaths = new List<string>();
+        private string _candidateMenuPath;
 
 
         private void OnEnable()
@@ -180,6 +181,7 @@ namespace GBG.AssetQuickAccess.Editor
                 {
                     flexShrink = 0,
                     flexDirection = FlexDirection.Row,
+                    paddingTop = 4,
                 }
             };
             rootVisualElement.Add(horizontal2);
@@ -233,24 +235,11 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void OnMenuPathChanged(ChangeEvent<string> evt)
         {
-            #region Validation
-
-            string menuPath = evt.newValue;
-            bool isValidPath = TryCorrectMenuPath(ref menuPath);
-
-            _statusLabel.style.display = isValidPath
-                ? DisplayStyle.None
-                : DisplayStyle.Flex;
-
-            _addButton.SetEnabled(isValidPath);
-
-            #endregion
-
-
             #region Filter
 
             _filteredMenuPaths.Clear();
 
+            string menuPath = evt.newValue;
             if (string.IsNullOrEmpty(menuPath))
             {
                 _filteredMenuPaths.AddRange(_allMenuPaths);
@@ -269,28 +258,6 @@ namespace GBG.AssetQuickAccess.Editor
 
             #endregion
         }
-
-        private VisualElement MakeMenuPathListViewItem()
-        {
-            return new Button
-            {
-                name = "MenuItemButton",
-                style =
-                {
-                    unityTextAlign = TextAnchor.MiddleLeft,
-                }
-            };
-        }
-
-        private void BindMenuPathListViewItem(VisualElement element, int index)
-        {
-            string menuPath = _filteredMenuPaths[index];
-            Button button = (Button)element;
-            button.text = menuPath;
-            button.tooltip = menuPath;
-            button.clicked += () => _menuPathField.value = menuPath;
-        }
-
 
         private void HandleKeyUp(KeyUpEvent evt)
         {
@@ -313,6 +280,48 @@ namespace GBG.AssetQuickAccess.Editor
             }
         }
 
+        private VisualElement MakeMenuPathListViewItem()
+        {
+            return new Button
+            {
+                name = "MenuItemButton",
+                style =
+                {
+                    unityTextAlign = TextAnchor.MiddleLeft,
+                }
+            };
+        }
+
+        private void BindMenuPathListViewItem(VisualElement element, int index)
+        {
+            string menuPath = _filteredMenuPaths[index];
+            Button button = (Button)element;
+            button.text = menuPath;
+            button.tooltip = menuPath;
+            button.RegisterCallback<ClickEvent>(evt =>
+            {
+                if (evt.button != 0)
+                    return;
+
+                _candidateMenuPath = menuPath;
+                ValidateCandidateMenuPath();
+
+                if (evt.clickCount == 2)
+                    TrySubmit();
+            });
+        }
+
+        private bool ValidateCandidateMenuPath()
+        {
+            bool isValidPath = TryCorrectMenuPath(ref _candidateMenuPath);
+            _statusLabel.style.display = isValidPath
+                ? DisplayStyle.None
+                : DisplayStyle.Flex;
+
+            _addButton.SetEnabled(isValidPath);
+            return isValidPath;
+        }
+
         private void Cancel()
         {
             SubmitMenuItem(null, null);
@@ -320,30 +329,25 @@ namespace GBG.AssetQuickAccess.Editor
 
         private void TrySubmit()
         {
-            string menuPath = _menuPathField.value;
-            bool isValidPath = TryCorrectMenuPath(ref menuPath);
+            bool isValidPath = TryCorrectMenuPath(ref _candidateMenuPath);
             if (!isValidPath)
-            {
                 return;
-            }
 
             string menuName = string.Empty;
-            int slashIndex = menuPath.LastIndexOf('/');
+            int slashIndex = _candidateMenuPath.LastIndexOf('/');
             if (slashIndex > -1)
-            {
-                menuName = menuPath.Substring(slashIndex + 1);
-            }
+                menuName = _candidateMenuPath.Substring(slashIndex + 1);
 
-            SubmitMenuItem(menuPath, menuName);
+            SubmitMenuItem(_candidateMenuPath, menuName);
         }
 
-        private void SubmitMenuItem(string menuPath, string title)
+        private void SubmitMenuItem(string menuPath, string menuTitle)
         {
             if (_onSubmit != null)
             {
                 SubmitHandler action = _onSubmit;
                 _onSubmit = null;
-                action.Invoke(menuPath, title);
+                action.Invoke(menuPath, menuTitle);
             }
 
             Close();
